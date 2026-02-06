@@ -6,12 +6,7 @@ namespace backend.DB;
 public class DbManager
 {
     private readonly string connString;
-
-    public DbManager()
-    {
-        
-    }
-
+    
     public DbManager(string connString)
     {
         this.connString = connString;
