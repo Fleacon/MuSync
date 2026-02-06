@@ -1,10 +1,12 @@
 <script setup></script>
 
 <template>
-  <h1>Musync</h1>
   <nav>
-    <RouterLink to="/">Home</RouterLink>
-    <RouterLink to="/account">account</RouterLink>
+    <h1 id="logo" v-show="$route.path !== '/search'" @click="$router.replace('/')">MuSync</h1>
+    <div class="account" @click="$router.replace('/account')">
+      <p id="accountName">Fleacon</p>
+      <i class="fa-solid fa-user" id="accountIcon"></i>
+    </div>
   </nav>
   <main>
     <RouterView />
@@ -36,5 +38,44 @@ body {
   color: var(--accent2-color);
   background-repeat: no-repeat;
   background-attachment: fixed;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+#logo {
+  cursor: pointer;
+}
+
+#accountIcon {
+  font-size: 2em;
+}
+
+nav {
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  right: 0;
+}
+
+.account:hover {
+  cursor: pointer;
+}
+
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 </style>
