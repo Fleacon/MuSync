@@ -2,6 +2,6 @@
 
 public enum Provider
 {
-    YTMUSIC,
-    SPOTIFY
+    YtMusic,
+    Spotify
 }
