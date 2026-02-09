@@ -3,13 +3,13 @@ using MySql.Data.MySqlClient;
 
 namespace backend.DB.DAO;
 
-public class UserDAO
+public class UsersDAO
 {
     private readonly DbManager db;
 
-    public UserDAO(DbManager db) => this.db = db;
+    public UsersDAO(DbManager db) => this.db = db;
 
-    public async Task<User> GetUserById(int id)
+    public async Task<User?> GetUserById(int id)
     {
         await using var conn = db.CreateConnection();
         await using var cmd = new MySqlCommand(
@@ -27,7 +27,7 @@ public class UserDAO
     {
         await using var conn = db.CreateConnection();
         await using var cmd =
-            new MySqlCommand("INSERT INTO Users (Email, Username, Password) VALUES (@email, @user, @password);" + "SELECT LAST_INSERT_INTO_ID();", conn);
+            new MySqlCommand("INSERT INTO Users (Email, Username, Password) VALUES (@email, @username, @password);" + "SELECT LAST_INSERT_ID();", conn);
         cmd.Parameters.AddWithValue("@email", user.Email);
         cmd.Parameters.AddWithValue("@username", user.Username);
         cmd.Parameters.AddWithValue("@password", user.PasswordHash);

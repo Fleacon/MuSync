@@ -10,7 +10,7 @@ public class OAuthTokensDAO
 
     public OAuthTokensDAO(DbManager db) => this.db = db;
 
-    public async Task<OAuthToken> GetOAuthTokenByUserId(int userId)
+    public async Task<OAuthToken?> GetOAuthTokenByUserId(int userId)
     {
         await using var conn = db.CreateConnection();
         await using var cmd = new MySqlCommand("SELECT * FROM OAuthTokens WHERE UserId = @user", conn);
@@ -35,7 +35,7 @@ public class OAuthTokensDAO
         await using var cmd =
             new MySqlCommand(
                 "INSERT INTO OAuthTokens(Provider, ProviderUserId, RefreshToken, UserId) VALUES (@provider, @providerUserId, @refreshToken, @userId);" +
-                "SELECT LAST_INSERT_INTO_ID();");
+                "SELECT LAST_INSERT_ID();");
         cmd.Parameters.AddWithValue("@provider", authToken.Provider.ToString());
         cmd.Parameters.AddWithValue("@providerUserId", authToken.ProviderUserId);
         cmd.Parameters.AddWithValue("@refreshToken", authToken.RefreshToken);
