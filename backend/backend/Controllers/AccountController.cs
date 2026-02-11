@@ -21,14 +21,12 @@ public class AccountController : ControllerBase
         tokenManager = new(oAuthDao);
     }
 
-    [HttpPost("LoginData")]
+    [HttpPost("Login")] // TODO: Implement Remember Me
     public async Task<ActionResult<SessionContext>> TryLogin([FromBody] UserAuthData userAuthData)
     {
-        if (user == null)
-        {
-            return Unauthorized();
-        }
         var user = await usersDao.GetUserByUsername(userAuthData.Username);
+        if (user is null)
+            return NotFound();
 
         string storedPw = user.PasswordHash;
         if (!PasswordService.VerifyPassword(storedPw, userAuthData.Password))
@@ -37,7 +35,9 @@ public class AccountController : ControllerBase
         await sessionManager.GenerateSession(Response, user.UserId); 
         
         var providerAccesses = await tokenManager.GenerateProviderAccess(user); 
-        return Ok(new SessionContext(username, providerAccesses));
+        return Ok(new SessionContext(user.Username, providerAccesses));
+    }
+
     [HttpPost("Register")]
     public async Task<ActionResult<SessionContext>> TryRegister([FromBody] UserAuthData userAuthData)
     {
