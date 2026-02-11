@@ -18,7 +18,7 @@ public class UsersDAO
         var reader = await cmd.ExecuteReaderAsync();
         if (await reader.ReadAsync())
         {
-            return new (reader.GetInt32(0), reader.GetString(1), reader.GetString(2), reader.GetString(3));
+            return new (reader.GetInt32(0), reader.GetString(1), reader.GetString(2));
         }
         return null;
     }
@@ -32,7 +32,7 @@ public class UsersDAO
         var reader = await cmd.ExecuteReaderAsync();
         if (await reader.ReadAsync())
         {
-            return new (reader.GetInt32(0), reader.GetString(1), reader.GetString(2), reader.GetString(3));
+            return new (reader.GetInt32(0), reader.GetString(1), reader.GetString(2));
         }
         return null;
     }
@@ -41,8 +41,7 @@ public class UsersDAO
     {
         await using var conn = db.CreateConnection();
         await using var cmd =
-            new MySqlCommand("INSERT INTO Users (Email, Username, Password) VALUES (@email, @username, @password);" + "SELECT LAST_INSERT_ID();", conn);
-        cmd.Parameters.AddWithValue("@email", user.Email);
+            new MySqlCommand("INSERT INTO Users (Username, Password) VALUES (@username, @password);" + "SELECT LAST_INSERT_ID();", conn);
         cmd.Parameters.AddWithValue("@username", user.Username);
         cmd.Parameters.AddWithValue("@password", user.PasswordHash);
         

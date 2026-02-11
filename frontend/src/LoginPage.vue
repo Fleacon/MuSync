@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from 'vue'
 
-const newEmail = ref('')
 const newUsername = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
@@ -22,7 +21,6 @@ async function registerUser() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email: newEmail.value,
         username: newUsername.value,
         passwordHash: newPassword.value,
       }),
@@ -31,7 +29,7 @@ async function registerUser() {
     connected.value = 'yuh uh'
     if (response.ok) {
       success.value = 'Registration successful!'
-      newEmail.value = newUsername.value = newPassword.value = confirmPassword.value = ''
+      newUsername.value = newPassword.value = confirmPassword.value = ''
     } else {
       const errorData = await response.json()
       error.value = errorData.message || `Server error: ${response.status}`
@@ -60,14 +58,6 @@ async function registerUser() {
       <div v-if="error" class="error">{{ error }}</div>
       <div v-if="success" class="success">{{ success }}</div>
 
-      <input
-        type="text"
-        class="newEmail"
-        name="newEmail"
-        id="newEmail"
-        placeholder="Email"
-        v-model="newEmail"
-      />
       <input
         type="text"
         class="newUsername"
