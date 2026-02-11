@@ -33,18 +33,9 @@ public class AccountController : ControllerBase
         string storedPw = user.PasswordHash;
         if (!PasswordService.VerifyPassword(storedPw, userAuthData.Password))
             return Unauthorized();
-        int userId = user.UserId; 
-        string sessionToken = sessionManager.GenerateSessionToken(); 
-        var s = await sessionManager.GenerateSession(userId, sessionToken); 
-        Response.Cookies.Append("Session", sessionToken, new () 
-        { 
-            HttpOnly = true, 
-            Secure = true, 
-            SameSite = SameSiteMode.Lax, 
-            Expires = s.ExpiryDate,
-            Path = "/"
-        }); 
-        string username = user.Username; 
+        
+        await sessionManager.GenerateSession(Response, user.UserId); 
+        
         var providerAccesses = await tokenManager.GenerateProviderAccess(user); 
         return Ok(new SessionContext(username, providerAccesses));
     }

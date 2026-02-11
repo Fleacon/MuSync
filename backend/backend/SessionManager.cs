@@ -14,11 +14,22 @@ public class SessionManager
         this.sDao = sDao;
     }
     
-    public async Task<Session> GenerateSession(int uId, string token)
+    public async Task<Session> GenerateSession(HttpResponse response, int uId)
     {
         var creationDate = DateTime.Now;
         var expiryDate = creationDate.AddHours(24);
+        
+        string token = GenerateSessionToken();
         var sessionHash = HashSessionToken(token);
+        
+        response.Cookies.Append("Session", token, new () 
+        { 
+            HttpOnly = true, 
+            Secure = true, 
+            SameSite = SameSiteMode.Lax, 
+            Expires = expiryDate,
+            Path = "/"
+        });
 
         return await sDao.CreateSession(new(0, creationDate, expiryDate, uId, sessionHash));
     }
