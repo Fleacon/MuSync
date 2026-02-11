@@ -5,6 +5,9 @@ const newUsername = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
 
+const username = ref('')
+const password = ref('')
+
 const error = ref('')
 const success = ref('')
 const connected = ref('dunno')
@@ -17,12 +20,12 @@ async function registerUser() {
     return
   }
   try {
-    const response = await fetch('http://localhost:5123/api/test/CreateUser', {
+    const response = await fetch('http://localhost:5123/api/Account/Register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: newUsername.value,
-        passwordHash: newPassword.value,
+        password: newPassword.value,
       }),
     })
     const data = await response.json()
@@ -40,16 +43,50 @@ async function registerUser() {
     console.error(err)
   }
 }
+
+async function loginUser() {
+  error.value = ''
+  success.value = ''
+  try {
+    const response = await fetch('http://localhost:5123/api/Account/Login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: username.value,
+        password: password.value,
+      }),
+      credentials: 'include',
+    })
+    if (response.ok) {
+      const data = await response.json()
+      localStorage.setItem('token', data.token)
+      success.value = 'Login successful!'
+      username.value = password.value = ''
+    } else {
+      const errorData = await response.json()
+      error.value = errorData.message || `Server error: ${response.status}`
+    }
+  } catch (err) {
+    error.value = 'Network error. Is server running?'
+    console.error(err)
+  }
+}
 </script>
 
 <template>
   <div class="main">
     <div class="container">
       <h2>Login</h2>
-      <input type="text" name="username" id="username" placeholder="Username" />
-      <input type="password" name="password" id="password" placeholder="Password" />
+      <input type="text" name="username" id="username" placeholder="Username" v-model="username" />
+      <input
+        type="password"
+        name="password"
+        id="password"
+        placeholder="Password"
+        v-model="password"
+      />
       <label for="rememberMe"><input type="checkbox" name="rememberMe" /> Remember me</label>
-      <input type="button" value="Login" />
+      <input type="button" value="Login" @click="loginUser" />
     </div>
     <div class="container">
       <h2>Register</h2>
@@ -60,7 +97,6 @@ async function registerUser() {
 
       <input
         type="text"
-        class="newUsername"
         name="newUsername"
         id="newUsername"
         placeholder="Username"
@@ -68,7 +104,6 @@ async function registerUser() {
       />
       <input
         type="password"
-        class="newPassword"
         name="newPassword"
         id="newPassword"
         placeholder="Password"
