@@ -1,0 +1,40 @@
+﻿using System.Security.Cryptography;
+using System.Text;
+using backend.DB.DAO;
+using backend.Models;
+
+namespace backend;
+
+public class SessionManager
+{
+    private readonly SessionsDAO sDao;
+
+    public SessionManager(SessionsDAO sDao)
+    {
+        this.sDao = sDao;
+    }
+    
+    public async Task<Session> GenerateSession(int uId, string token)
+    {
+        var creationDate = DateTime.Now;
+        var expiryDate = creationDate.AddHours(24);
+        var sessionHash = HashSessionToken(token);
+
+        return await sDao.CreateSession(new(0, creationDate, expiryDate, uId, sessionHash));
+    }
+    
+    public string GenerateSessionToken()
+    {
+        byte[] bytes = new byte[32]; // 256 bits
+        RandomNumberGenerator.Fill(bytes);
+
+        return Convert.ToBase64String(bytes);
+    }
+    
+    private static string HashSessionToken(string token)
+    {
+        using var sha256 = SHA256.Create();
+        byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
+        return Convert.ToBase64String(hash);
+    }
+}
