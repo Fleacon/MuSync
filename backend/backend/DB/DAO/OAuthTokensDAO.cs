@@ -10,23 +10,25 @@ public class OAuthTokensDAO
 
     public OAuthTokensDAO(DbManager db) => this.db = db;
 
-    public async Task<OAuthToken?> GetOAuthTokenByUserId(int userId)
+    public async Task<List<OAuthToken>> GetOAuthTokenByUserId(int userId)
     {
+        var tokens = new List<OAuthToken>();
+        
         await using var conn = db.CreateConnection();
         await using var cmd = new MySqlCommand("SELECT * FROM OAuthTokens WHERE UserId = @user", conn);
         cmd.Parameters.AddWithValue("@user", userId);
         var reader = await cmd.ExecuteReaderAsync();
-        if (await reader.ReadAsync())
+        while (await reader.ReadAsync())
         {
             Enum.TryParse<Provider>(reader.GetString(1), true, out var prov);
-            return new OAuthToken(
+            tokens.Add(new OAuthToken(
                 reader.GetInt32(0),
                 reader.GetInt32(2),
                 prov,
                 reader.GetString(3),
-                reader.GetInt32(4));
+                reader.GetInt32(4)));
         }
-        return null;
+        return tokens;
     }
 
     public async Task<OAuthToken> CreateOAuthToken(OAuthToken authToken)
