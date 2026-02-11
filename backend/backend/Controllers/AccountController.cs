@@ -22,16 +22,16 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost("LoginData")]
-    public async Task<ActionResult<SessionContext>> TryLogin([FromBody] LoginData loginData)
+    public async Task<ActionResult<SessionContext>> TryLogin([FromBody] UserAuthData userAuthData)
     {
-        var user = await usersDao.GetUserByUsername(loginData.Username);
         if (user == null)
         {
             return Unauthorized();
         }
+        var user = await usersDao.GetUserByUsername(userAuthData.Username);
 
         string storedPw = user.PasswordHash;
-        if (!PasswordService.VerifyPassword(storedPw, loginData.Password))
+        if (!PasswordService.VerifyPassword(storedPw, userAuthData.Password))
             return Unauthorized();
         int userId = user.UserId; 
         string sessionToken = sessionManager.GenerateSessionToken(); 
