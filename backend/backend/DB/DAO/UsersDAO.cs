@@ -18,7 +18,21 @@ public class UsersDAO
         var reader = await cmd.ExecuteReaderAsync();
         if (await reader.ReadAsync())
         {
-            return new User(reader.GetInt32(0), reader.GetString(1), reader.GetString(2), reader.GetString(3));
+            return new (reader.GetInt32(0), reader.GetString(1), reader.GetString(2), reader.GetString(3));
+        }
+        return null;
+    }
+    
+    public async Task<User?> GetUserByUsername(string name)
+    {
+        await using var conn = db.CreateConnection();
+        await using var cmd = new MySqlCommand(
+            "SELECT * FROM Users WHERE Username = @name", conn);
+        cmd.Parameters.AddWithValue("@name", name);
+        var reader = await cmd.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+        {
+            return new (reader.GetInt32(0), reader.GetString(1), reader.GetString(2), reader.GetString(3));
         }
         return null;
     }
