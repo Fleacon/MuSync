@@ -1,4 +1,5 @@
-﻿using backend.DB.DAO;
+﻿using System.Text.Json;
+using backend.DB.DAO;
 using backend.Models;
 
 namespace backend;
@@ -12,7 +13,7 @@ public class TokenManager
         this.tokensDao = tokensDao;
     }
     
-    public async Task<List<ProviderAccess>> GenerateProviderAccess(User u)
+    public async Task GenerateProviderAccess(HttpResponse response, User u)
     {
         var providerAccess = new List<ProviderAccess>();
         var tokens = await tokensDao.GetOAuthTokenByUserId(u.UserId);
@@ -21,11 +22,17 @@ public class TokenManager
             string accessToken = await GenerateNewAccessToken(t);
             providerAccess.Add(new ProviderAccess(t.Provider, accessToken));
         }
-
-        return providerAccess;
+        
+        response.Cookies.Append("ProviderAccess", JsonSerializer.Serialize(providerAccess), new () 
+        { 
+            HttpOnly = true, 
+            Secure = true, 
+            SameSite = SameSiteMode.Lax, 
+            Path = "/"
+        });
     }
 
-    public async Task<string> GenerateNewAccessToken(OAuthToken oAuthToken)
+    private async Task<string> GenerateNewAccessToken(OAuthToken oAuthToken)
     {
         return "dummy";
     }
