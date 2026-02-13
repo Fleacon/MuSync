@@ -63,4 +63,19 @@ public class AccountController : ControllerBase
         return Ok(new SessionContext(newUser.Username, null));
     }
 
+    [HttpPost("Logout")]
+    public async Task<IActionResult> LogOut()
+    {
+        if (!Request.Cookies.TryGetValue("Session", out var sToken))
+        {
+            return NoContent();
+        }
+        bool isDeleted = await sessionManager.DeleteSession(sToken);
+        if (isDeleted)
+        {
+            Response.Cookies.Delete("Session");
+            return Ok();
+        }
+        return NotFound();   
+    }
 }
