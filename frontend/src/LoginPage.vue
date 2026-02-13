@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import router from './router'
 
 const newUsername = ref('')
 const newPassword = ref('')
@@ -27,12 +28,14 @@ async function registerUser() {
         username: newUsername.value,
         password: newPassword.value,
       }),
+      credentials: 'include',
     })
     const data = await response.json()
     connected.value = 'yuh uh'
     if (response.ok) {
       success.value = 'Registration successful!'
       newUsername.value = newPassword.value = confirmPassword.value = ''
+      router.replace('/account')
     } else {
       const errorData = await response.json()
       error.value = errorData.message || `Server error: ${response.status}`
@@ -62,6 +65,7 @@ async function loginUser() {
       localStorage.setItem('token', data.token)
       success.value = 'Login successful!'
       username.value = password.value = ''
+      router.replace('/search')
     } else {
       const errorData = await response.json()
       error.value = errorData.message || `Server error: ${response.status}`
