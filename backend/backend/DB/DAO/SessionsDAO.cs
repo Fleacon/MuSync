@@ -17,11 +17,40 @@ public class SessionsDAO
         var reader = await cmd.ExecuteReaderAsync();
         if (await reader.ReadAsync())
         {
-            return new Session(reader.GetInt32(0), reader.GetDateTime(1), reader.GetDateTime(2), reader.GetInt32(3), reader.GetString(4));
+            return new (reader.GetInt32(0), reader.GetDateTime(1), reader.GetDateTime(2), reader.GetInt32(3), reader.GetString(4));
         }
         return null;
     }
 
+    public async Task<List<Session>> GetSessionByUserId(int id)
+    {
+        await using var conn = db.CreateConnection();
+        await using var cmd = new MySqlCommand("SELECT * FROM Sessions WHERE UserId = @userId", conn);
+        cmd.Parameters.AddWithValue("@userId", id);
+        var reader = await cmd.ExecuteReaderAsync();
+
+        var sessions = new List<Session>();
+        while (await reader.ReadAsync())
+        {
+            sessions.Add(new(reader.GetInt32(0), reader.GetDateTime(1), reader.GetDateTime(2), reader.GetInt32(3), reader.GetString(4)));
+        }
+        
+        return sessions;
+    }
+
+    public async Task<Session?> GetSessionByHash(string hash)
+    {
+        await using var conn = db.CreateConnection();
+        await using var cmd = new MySqlCommand("SELECT * FROM Sessions WHERE SessionHash = @hash", conn);
+        cmd.Parameters.AddWithValue("@hash", hash);
+        var reader = await cmd.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+        {
+            return new (reader.GetInt32(0), reader.GetDateTime(1), reader.GetDateTime(2), reader.GetInt32(3), reader.GetString(4));
+        }
+        return null;
+    }
+    
     public async Task<Session> CreateSession(Session session)
     {
         await using var conn = db.CreateConnection();
