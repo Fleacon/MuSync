@@ -62,4 +62,5 @@ public class AccountController : ControllerBase
 
         return Ok(new SessionContext(newUser.Username, null));
     }
+
 }
