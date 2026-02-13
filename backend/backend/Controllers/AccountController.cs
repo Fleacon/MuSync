@@ -10,6 +10,7 @@ public class AccountController : ControllerBase
 {
     private UsersDAO usersDao;
     private SessionsDAO sessionsDao;
+    private OAuthTokensDAO authTokensDao;
     private SessionManager sessionManager;
     private TokenManager tokenManager;
 
@@ -17,6 +18,7 @@ public class AccountController : ControllerBase
     {
         this.usersDao = usersDao;
         this.sessionsDao = sessionsDao;
+        authTokensDao = oAuthDao;
         sessionManager = new (this.sessionsDao);
         tokenManager = new(oAuthDao);
     }
@@ -32,10 +34,16 @@ public class AccountController : ControllerBase
         if (!PasswordService.VerifyPassword(storedPw, userAuthData.Password))
             return Unauthorized();
         
-        await sessionManager.GenerateSession(Response, user.UserId); 
+        var providers = await authTokensDao.GetOAuthTokenByUserId(user.UserId);
+        var providersList = providers
+            .Select(p => p.Provider)
+            .Distinct()
+            .ToList();
+
+        await sessionManager.GenerateSession(Response, user.UserId);
+        await tokenManager.GenerateProviderAccess(Response, user);
         
-        var providerAccesses = await tokenManager.GenerateProviderAccess(user); 
-        return Ok(new SessionContext(user.Username, providerAccesses));
+        return Ok(new SessionContext(user.Username, providersList));
     }
 
     [HttpPost("Register")]
@@ -51,7 +59,7 @@ public class AccountController : ControllerBase
         var newUser = await usersDao.CreateUser(new(0, username, hashedPw));
 
         await sessionManager.GenerateSession(Response, newUser.UserId);
-        
+
         return Ok(new SessionContext(newUser.Username, null));
     }
 }
