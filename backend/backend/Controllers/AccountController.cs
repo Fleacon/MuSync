@@ -74,6 +74,7 @@ public class AccountController : ControllerBase
         if (isDeleted)
         {
             Response.Cookies.Delete("Session");
+            Response.Cookies.Delete("Provider");
             return Ok();
         }
         return NotFound();   
