@@ -35,6 +35,9 @@ async function registerUser() {
     if (response.ok) {
       success.value = 'Registration successful!'
       newUsername.value = newPassword.value = confirmPassword.value = ''
+      localStorage.setItem('username', data.username)
+      localStorage.setItem('providerList', JSON.stringify(data.providerList))
+      window.dispatchEvent(new CustomEvent('login-success'))
       router.replace('/account')
     } else {
       const errorData = await response.json()
@@ -65,6 +68,9 @@ async function loginUser() {
       localStorage.setItem('token', data.token)
       success.value = 'Login successful!'
       username.value = password.value = ''
+      localStorage.setItem('username', data.username)
+      localStorage.setItem('providerList', JSON.stringify(data.providerList))
+      window.dispatchEvent(new CustomEvent('login-success'))
       router.replace('/search')
     } else {
       const errorData = await response.json()
