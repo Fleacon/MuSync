@@ -41,8 +41,24 @@ public class SessionManager
 
         return Convert.ToBase64String(bytes);
     }
+
+    public bool VerifySessionToken(string hashedToken, string providedToken)
+    {
+        string hash = HashSessionToken(providedToken);
+        return hashedToken == hash;
+    }
+
+    public async Task<bool> DeleteSession(string token)
+    {
+        var hashedToken = HashSessionToken(token);
+        var session = await sDao.GetSessionByHash(hashedToken);
+        if (session is null)
+            return false;
+        await sDao.RemoveSessionById(session.SessionId);
+        return true;
+    }
     
-    private static string HashSessionToken(string token)
+    private string HashSessionToken(string token)
     {
         using var sha256 = SHA256.Create();
         byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
