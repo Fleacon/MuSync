@@ -1,6 +1,8 @@
 using System.Text.Json.Serialization;
+using backend;
 using backend.DB;
 using backend.DB.DAO;
+using backend.Services;
 using DotNetEnv;
 
 Env.Load();
@@ -27,11 +29,13 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
-builder.Services.AddScoped<DbManager>(_ => new DbManager(connString));
+builder.Services.AddScoped<DbManager>(_ => new (connString));
 builder.Services.AddScoped<UsersDAO>();
 builder.Services.AddScoped<SessionsDAO>();
 builder.Services.AddScoped<RememberTokensDAO>();
 builder.Services.AddScoped<OAuthTokensDAO>();
+builder.Services.AddScoped<SessionService>();
+builder.Services.AddScoped<TokenService>();
 
 var app = builder.Build();
 

@@ -3,13 +3,13 @@ using System.Text;
 using backend.DB.DAO;
 using backend.Models;
 
-namespace backend;
+namespace backend.Services;
 
-public class SessionManager
+public class SessionService
 {
     private readonly SessionsDAO sDao;
 
-    public SessionManager(SessionsDAO sDao)
+    public SessionService(SessionsDAO sDao)
     {
         this.sDao = sDao;
     }

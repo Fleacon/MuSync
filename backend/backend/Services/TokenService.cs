@@ -2,13 +2,13 @@
 using backend.DB.DAO;
 using backend.Models;
 
-namespace backend;
+namespace backend.Services;
 
-public class TokenManager
+public class TokenService
 {
     private OAuthTokensDAO tokensDao;
     
-    public TokenManager(OAuthTokensDAO tokensDao)
+    public TokenService(OAuthTokensDAO tokensDao)
     {
         this.tokensDao = tokensDao;
     }
