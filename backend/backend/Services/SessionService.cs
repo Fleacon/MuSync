@@ -58,7 +58,7 @@ public class SessionService
         return true;
     }
     
-    private string HashSessionToken(string token)
+    public string HashSessionToken(string token)
     {
         using var sha256 = SHA256.Create();
         byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));

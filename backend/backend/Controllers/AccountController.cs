@@ -12,16 +12,16 @@ public class AccountController : ControllerBase
     private UsersDAO usersDao;
     private SessionsDAO sessionsDao;
     private OAuthTokensDAO authTokensDao;
-    private SessionService _sessionService;
-    private TokenService _tokenService;
+    private SessionService sessionService;
+    private TokenService tokenService;
 
     public AccountController(UsersDAO usersDao, SessionsDAO sessionsDao, OAuthTokensDAO oAuthDao)
     {
         this.usersDao = usersDao;
         this.sessionsDao = sessionsDao;
         authTokensDao = oAuthDao;
-        _sessionService = new (this.sessionsDao);
-        _tokenService = new(oAuthDao);
+        sessionService = new (this.sessionsDao);
+        tokenService = new(oAuthDao);
     }
 
     [HttpPost("Login")] // TODO: Implement Remember Me
@@ -41,8 +41,8 @@ public class AccountController : ControllerBase
             .Distinct()
             .ToList();
 
-        await _sessionService.GenerateSession(Response, user.UserId);
-        await _tokenService.GenerateProviderAccess(Response, user);
+        await sessionService.GenerateSession(Response, user.UserId);
+        await tokenService.GenerateProviderAccess(Response, user);
         
         return Ok(new SessionContext(user.Username, providersList));
     }
@@ -59,7 +59,7 @@ public class AccountController : ControllerBase
 
         var newUser = await usersDao.CreateUser(new(0, username, hashedPw));
 
-        await _sessionService.GenerateSession(Response, newUser.UserId);
+        await sessionService.GenerateSession(Response, newUser.UserId);
 
         return Ok(new SessionContext(newUser.Username, null));
     }
@@ -71,7 +71,7 @@ public class AccountController : ControllerBase
         {
             return NoContent();
         }
-        bool isDeleted = await _sessionService.DeleteSession(sToken);
+        bool isDeleted = await sessionService.DeleteSession(sToken);
         if (isDeleted)
         {
             Response.Cookies.Delete("Session");
