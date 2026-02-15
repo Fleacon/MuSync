@@ -1,46 +1,19 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
-const username = ref('')
-const providers = ref([])
+const auth = useAuthStore()
 
-const loadUserData = () => {
-  const storedUser = localStorage.getItem('username')
-  const storedProviders = localStorage.getItem('providers')
-
-  if (storedUser) username.value = storedUser
-  if (storedProviders) {
-    try {
-      providers.value = JSON.parse(storedProviders)
-    } catch {
-      providers.value = []
-    }
-  }
-}
-
-onMounted(() => {
-  loadUserData()
-  window.addEventListener('login-success', loadUserData)
-  window.addEventListener('logout-success', () => {
-    username.value = ''
-    providers.value = []
-  })
-})
-
-onUnmounted(() => {
-  window.removeEventListener('login-success', loadUserData)
-  window.removeEventListener('logout-success', () => {
-    username.value = ''
-    providers.value = []
-  })
+onMounted(async () => {
+  await auth.checkAuth()
 })
 </script>
 
 <template>
   <nav>
-    <h1 id="logo" v-show="$route.path !== '/search'" @click="$router.replace('/')">MuSync</h1>
-    <div class="account" @click="$router.replace('/account')">
-      <p id="accountName">{{ username }}</p>
+    <h1 id="logo" v-show="$route.path !== '/'" @click="$router.push('/')">MuSync</h1>
+    <div class="account" @click="$router.push('/account')" v-if="auth.isAuthenticated">
+      <p id="accountName">{{ auth.username }}</p>
       <i class="fa-solid fa-user" id="accountIcon"></i>
     </div>
   </nav>

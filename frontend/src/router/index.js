@@ -1,15 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
-import SearchPage from '../SearchPage.vue'
-import HomePage from '../HomePage.vue'
-import AccountPage from '../AccountPage.vue'
-import LoginPage from '../LoginPage.vue'
+import SearchPage from '../views/SearchPage.vue'
+import AccountPage from '../views/AccountPage.vue'
+import LoginPage from '../views/LoginPage.vue'
 
 const routes = [
-  { path: '/', component: HomePage },
-  { path: '/search', component: SearchPage },
-  { path: '/account', component: AccountPage },
+  { path: '/', component: SearchPage },
+  { path: '/account', component: AccountPage, meta: { requiresAuth: true } },
   { path: '/login', component: LoginPage },
 ]
 

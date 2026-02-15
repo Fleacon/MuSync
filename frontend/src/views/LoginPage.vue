@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
-import router from './router'
+import router from '../router'
+import { useAuthStore } from '@/stores/auth'
 
 const newUsername = ref('')
 const newPassword = ref('')
@@ -13,6 +14,8 @@ const error = ref('')
 const success = ref('')
 const connected = ref('dunno')
 
+const authStore = useAuthStore()
+
 async function registerUser() {
   error.value = ''
   success.value = ''
@@ -21,7 +24,7 @@ async function registerUser() {
     return
   }
   try {
-    const response = await fetch('http://localhost:5123/api/Account/Register', {
+    const response = await fetch('/api/Account/Register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -35,10 +38,8 @@ async function registerUser() {
     if (response.ok) {
       success.value = 'Registration successful!'
       newUsername.value = newPassword.value = confirmPassword.value = ''
-      localStorage.setItem('username', data.username)
-      localStorage.setItem('providerList', JSON.stringify(data.providerList))
-      window.dispatchEvent(new CustomEvent('login-success'))
-      router.replace('/account')
+      authStore.setAuth(data.username, data.providers)
+      router.push('/account')
     } else {
       const errorData = await response.json()
       error.value = errorData.message || `Server error: ${response.status}`
@@ -54,7 +55,7 @@ async function loginUser() {
   error.value = ''
   success.value = ''
   try {
-    const response = await fetch('http://localhost:5123/api/Account/Login', {
+    const response = await fetch('/api/Account/Login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -65,13 +66,10 @@ async function loginUser() {
     })
     if (response.ok) {
       const data = await response.json()
-      localStorage.setItem('token', data.token)
       success.value = 'Login successful!'
       username.value = password.value = ''
-      localStorage.setItem('username', data.username)
-      localStorage.setItem('providerList', JSON.stringify(data.providerList))
-      window.dispatchEvent(new CustomEvent('login-success'))
-      router.replace('/search')
+      authStore.setAuth(data.username, data.providers)
+      router.push('/')
     } else {
       const errorData = await response.json()
       error.value = errorData.message || `Server error: ${response.status}`

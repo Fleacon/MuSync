@@ -1,18 +1,26 @@
 <script setup>
 import Cookies from 'js-cookie'
 import { onMounted, ref } from 'vue'
-import ProviderAuth from './components/ProviderAuth.vue'
+import ProviderAuth from '../components/ProviderAuth.vue'
+import { useAuthStore } from '../stores/auth'
+import router from '../router'
 
-function logout() {
+const authStore = useAuthStore()
+
+async function logout() {
   Cookies.remove('Session')
   Cookies.remove('ProviderList')
-  fetch('http://localhost:5123/api/Account/Logout', {
+  const response = await fetch('/api/Account/Logout', {
     method: 'POST',
     credentials: 'include',
   })
-  localStorage.removeItem('username')
-  localStorage.removeItem('providerList')
-  window.dispatchEvent(new CustomEvent('logout-success'))
+  if (response.ok) {
+    console.log('Logged out successfully')
+    authStore.clearAuth()
+    router.push('/')
+  } else {
+    console.error('Logout failed:', response.status)
+  }
 }
 </script>
 
