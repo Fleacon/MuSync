@@ -21,7 +21,7 @@ SET @@SESSION.SQL_LOG_BIN= 0;
 -- GTID state at the beginning of the backup 
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '12f1110c-0283-11f1-9fc7-2a78e37884c4:1-26';
+SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '12f1110c-0283-11f1-9fc7-2a78e37884c4:1-69';
 
 --
 -- Table structure for table `OAuthTokens`
@@ -33,7 +33,6 @@ DROP TABLE IF EXISTS `OAuthTokens`;
 CREATE TABLE `OAuthTokens` (
   `OAuthId` int NOT NULL AUTO_INCREMENT,
   `Provider` varchar(100) NOT NULL,
-  `ProviderUserId` varchar(100) DEFAULT NULL,
   `RefreshToken` varchar(100) DEFAULT NULL,
   `UserId` int DEFAULT NULL,
   PRIMARY KEY (`OAuthId`),
@@ -79,7 +78,7 @@ CREATE TABLE `Sessions` (
   UNIQUE KEY `Sessions_UNIQUE` (`SessionHash`),
   KEY `Sessions_Users_FK` (`UserId`),
   CONSTRAINT `Sessions_Users_FK` FOREIGN KEY (`UserId`) REFERENCES `Users` (`UserId`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -91,11 +90,10 @@ DROP TABLE IF EXISTS `Users`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `Users` (
   `UserId` int NOT NULL AUTO_INCREMENT,
-  `Email` varchar(100) DEFAULT NULL,
-  `Username` varchar(100) NOT NULL,
+  `Username` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs NOT NULL,
   `Password` varchar(100) NOT NULL,
   PRIMARY KEY (`UserId`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -112,4 +110,4 @@ SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-02-09 18:42:48
+-- Dump completed on 2026-02-15 14:28:18

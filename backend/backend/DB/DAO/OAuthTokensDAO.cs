@@ -23,7 +23,6 @@ public class OAuthTokensDAO
             Enum.TryParse<Provider>(reader.GetString(1), true, out var prov);
             tokens.Add(new OAuthToken(
                 reader.GetInt32(0),
-                reader.GetInt32(2),
                 prov,
                 reader.GetString(3),
                 reader.GetInt32(4)));
@@ -36,10 +35,9 @@ public class OAuthTokensDAO
         await using var conn = db.CreateConnection();
         await using var cmd =
             new MySqlCommand(
-                "INSERT INTO OAuthTokens(Provider, ProviderUserId, RefreshToken, UserId) VALUES (@provider, @providerUserId, @refreshToken, @userId);" +
+                "INSERT INTO OAuthTokens(Provider, RefreshToken, UserId) VALUES (@provider, @refreshToken, @userId);" +
                 "SELECT LAST_INSERT_ID();");
         cmd.Parameters.AddWithValue("@provider", authToken.Provider.ToString());
-        cmd.Parameters.AddWithValue("@providerUserId", authToken.ProviderUserId);
         cmd.Parameters.AddWithValue("@refreshToken", authToken.RefreshToken);
         cmd.Parameters.AddWithValue("@userId", authToken.UserId);
         
