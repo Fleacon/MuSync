@@ -36,6 +36,20 @@ public class UsersDAO
         }
         return null;
     }
+    
+    public async Task<User?> GetUserByHashedSessionToken(string token)
+    {
+        await using var conn = db.CreateConnection();
+        await using var cmd = new MySqlCommand(
+            "SELECT * FROM Users JOIN Sessions USING(UserId) WHERE SessionHash = @token", conn);
+        cmd.Parameters.AddWithValue("@token", token);
+        var reader = await cmd.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+        {
+            return new (reader.GetInt32(0), reader.GetString(1), reader.GetString(2));
+        }
+        return null;
+    }
 
     public async Task<User> CreateUser(User user)
     {
