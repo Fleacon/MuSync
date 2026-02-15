@@ -25,7 +25,7 @@ public class SessionService
         response.Cookies.Append("Session", token, new () 
         { 
             HttpOnly = true, 
-            Secure = true, 
+            Secure = false, // TODO: set to true when using https 
             SameSite = SameSiteMode.Lax, 
             Expires = expiryDate,
             Path = "/"

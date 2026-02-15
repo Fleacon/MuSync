@@ -15,13 +15,13 @@ public class AccountController : ControllerBase
     private SessionService sessionService;
     private TokenService tokenService;
 
-    public AccountController(UsersDAO usersDao, SessionsDAO sessionsDao, OAuthTokensDAO oAuthDao)
+    public AccountController(UsersDAO usersDao, SessionsDAO sessionsDao, OAuthTokensDAO oAuthDao, SessionService sessionService, TokenService tokenService)
     {
         this.usersDao = usersDao;
         this.sessionsDao = sessionsDao;
-        authTokensDao = oAuthDao;
-        sessionService = new (this.sessionsDao);
-        tokenService = new(oAuthDao);
+        this.authTokensDao = oAuthDao;
+        this.sessionService = sessionService;
+        this.tokenService = tokenService;
     }
 
     [HttpPost("Login")] // TODO: Implement Remember Me
@@ -75,7 +75,6 @@ public class AccountController : ControllerBase
         if (isDeleted)
         {
             Response.Cookies.Delete("Session");
-            Response.Cookies.Delete("Provider");
             return Ok();
         }
         return NotFound();   
