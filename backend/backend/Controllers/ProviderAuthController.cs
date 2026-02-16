@@ -46,7 +46,7 @@ public class ProviderAuthController : ControllerBase
     [HttpGet("CallBack/{provider}")]
     public async Task<ActionResult> CallBack(Provider provider)
     {
-        if (!Request.Cookies.TryGetValue("Sessions", out var token))
+        if (!Request.Cookies.TryGetValue("Session", out var token))
             return Unauthorized();
         var user = await usersDao.GetUserByHashedSessionToken(sessionService.HashSessionToken(token));
         if (user is null)
