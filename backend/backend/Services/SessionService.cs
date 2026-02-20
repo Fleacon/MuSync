@@ -25,7 +25,7 @@ public class SessionService
         response.Cookies.Append("Session", token, new () 
         { 
             HttpOnly = true, 
-            Secure = false, // TODO: set to true when using https 
+            Secure = true, 
             SameSite = SameSiteMode.Lax, 
             Expires = expiryDate,
             Path = "/"
@@ -58,7 +58,7 @@ public class SessionService
         return true;
     }
     
-    public string HashSessionToken(string token)
+    public static string HashSessionToken(string token)
     {
         using var sha256 = SHA256.Create();
         byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
