@@ -12,35 +12,26 @@ namespace backend.Controllers;
 public class ProviderAuthController : ControllerBase
 {
     private UsersDAO usersDao;
-    private SessionsDAO sessionsDao;
-    private OAuthTokensDAO authTokensDao;
     private SessionService sessionService;
-    private TokenService tokenService;
     private AuthService authService;
 
-    public ProviderAuthController(UsersDAO usersDao, SessionsDAO sessionsDao, OAuthTokensDAO oAuthDao)
+    public ProviderAuthController(UsersDAO usersDao, SessionService sessionService, AuthService authService)
     {
         this.usersDao = usersDao;
-        this.sessionsDao = sessionsDao;
-        authTokensDao = oAuthDao;
-        sessionService = new (sessionsDao);
-        tokenService = new(oAuthDao);
-        authService = new(new IProvider[]
-        {
-            new Providers.SpotifyAPI(),
-        });
+        this.sessionService = sessionService;
+        this.authService = authService;
     }
 
     
     [HttpGet("Login/{provider}")]
     public async Task<ActionResult> Login(Provider provider)
     {
-        if (!Request.Cookies.TryGetValue("Sessions", out var token))
+        if (!Request.Cookies.TryGetValue("Session", out var token))
             return Unauthorized();
-        var user = await usersDao.GetUserByHashedSessionToken(sessionService.HashSessionToken(token));
+        var user = await usersDao.GetUserByHashedSessionToken(SessionService.HashSessionToken(token));
         if (user is null)
             return Unauthorized();
-        return authService.RequestAuth(provider, HttpContext);
+        return authService.RequestAuth(provider);
     }
 
     [HttpGet("CallBack/{provider}")]
@@ -48,14 +39,42 @@ public class ProviderAuthController : ControllerBase
     {
         if (!Request.Cookies.TryGetValue("Session", out var token))
             return Unauthorized();
-        var user = await usersDao.GetUserByHashedSessionToken(sessionService.HashSessionToken(token));
+        var user = await usersDao.GetUserByHashedSessionToken(SessionService.HashSessionToken(token));
         if (user is null)
             return Unauthorized();
         var result = await authService.HandleCallback(provider, HttpContext);
         if (result is null)
             return BadRequest();
-        await authTokensDao.CreateOAuthToken(new(0, provider, result.RefreshToken, user.UserId));
-        Response.Cookies.Append($"AccessToken_{provider.ToString()}", result.AccessToken);
+        //Console.WriteLine($"Refresh: {result.RefreshToken}\nAccess: {result.AccessToken}\nExpiry:{result.Expiry} ");
+        await authService.CreateOAuthToken(provider, result, user.UserId);
+        Response.Cookies.Append($"AccessToken_{provider}", result.AccessToken, new ()
+        {
+            HttpOnly = true, 
+            Secure = true, 
+            SameSite = SameSiteMode.Lax, 
+            Path = "/"
+        });
+        return Redirect("https://localhost:5173/account");
+    }
+
+    [HttpGet("Refresh/{provider}")]
+    public async Task<ActionResult> RefreshAccessToken(Provider provider)
+    {
+        if (!Request.Cookies.TryGetValue("Session", out var token))
+            return Unauthorized();
+        var user = await usersDao.GetUserByHashedSessionToken(SessionService.HashSessionToken(token));
+        if (user is null)
+            return Unauthorized();
+        var newToken = await authService.RefreshAccessToken(provider, user);
+        if (newToken is null)
+            return BadRequest();
+        Response.Cookies.Append($"AccessToken_{provider}", newToken, new ()
+        {
+            HttpOnly = true, 
+            Secure = true, 
+            SameSite = SameSiteMode.Lax, 
+            Path = "/"
+        });
         return Ok();
     }
 }

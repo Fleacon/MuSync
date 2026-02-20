@@ -19,10 +19,13 @@ public class SpotifyAPI : IProvider
         Scopes.UserLibraryModify
     };
     
-    public ActionResult AuthRequest(HttpContext httpContext)
+    private readonly string clientId = Env.GetString("SPOTIFY_CLIENTID");
+    private readonly string clientSecret = Env.GetString("SPOTIFY_CLIENTSECRET");
+    private readonly string redirectUri = Env.GetString("SPOTIFY_REDIRECTURI");
+    
+    public ActionResult AuthRequest()
     {
-        var redirectUri = Env.GetString("SPOTIFY_REDIRECTURI");
-        var loginRequest = new LoginRequest(new (redirectUri), Env.GetString("SPOTIFY_CLIENTID"), LoginRequest.ResponseType.Code)
+        var loginRequest = new LoginRequest(new (redirectUri), clientId, LoginRequest.ResponseType.Code)
         {
             Scope = scope
         };
@@ -35,18 +38,37 @@ public class SpotifyAPI : IProvider
     {
         var code = httpContext.Request.Query["code"].ToString();
         if (string.IsNullOrEmpty(code)) throw new ("Missing code");
-
-        var redirectUri = Env.GetString("SPOTIFY_REDIRECTURI");
+        
         var spotifyConfig = SpotifyClientConfig.CreateDefault();
 
         var response = await new OAuthClient(spotifyConfig).RequestToken(
             new AuthorizationCodeTokenRequest(
-                Env.GetString("SPOTIFY_CLIENTID"),
-                Env.GetString("SPOTIFY_CLIENTSECRET"),
+                clientId,
+                clientSecret,
                 code,
                 new (redirectUri)
             )
         );
         return new(response.RefreshToken, response.AccessToken, response.CreatedAt.AddSeconds(response.ExpiresIn));
+    }
+
+    public Task<string> RefreshAccessToken(string refreshToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<UserPlaylists> GetUserPlaylists(string accessToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<ProviderAccess> GetUserData(string accessToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> IsTokenValid(string accessToken)
+    {
+        throw new NotImplementedException();
     }
 }

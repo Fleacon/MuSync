@@ -4,6 +4,7 @@ using backend.DB;
 using backend.DB.DAO;
 using backend.Services;
 using DotNetEnv;
+using Microsoft.AspNetCore.DataProtection;
 
 Env.Load();
 
@@ -35,7 +36,10 @@ builder.Services.AddScoped<SessionsDAO>();
 builder.Services.AddScoped<RememberTokensDAO>();
 builder.Services.AddScoped<OAuthTokensDAO>();
 builder.Services.AddScoped<SessionService>();
-builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<ProviderApiService>();
+
+builder.Services.AddDataProtection().PersistKeysToFileSystem(new("/sec/keys/"));
 
 var app = builder.Build();
 
