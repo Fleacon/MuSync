@@ -22,14 +22,56 @@ async function logout() {
     console.error('Logout failed:', response.status)
   }
 }
+
+const providers = ref([
+  { name: 'YouTube Music', icon: 'fa-youtube', connected: false },
+  { name: 'Spotify', icon: 'fa-spotify', connected: false },
+  { name: 'SoundCloud', icon: 'fa-soundcloud', connected: false },
+])
+
+const providerEnumMap = {
+  'YouTube Music': 'YouTubeMusic',
+  Spotify: 'Spotify',
+  SoundCloud: 'SoundCloud',
+}
+
+const providerEnum = (providerName) => providerEnumMap[providerName]
+
+onMounted(async () => {
+  try {
+    const response = await fetch('/api/ProviderController/LinkedProviders', {
+      credentials: 'include',
+    })
+
+    if (!response.ok) return
+
+    const linkedProviders = await response.json()
+
+    providers.value.forEach((localProvider) => {
+      const match = linkedProviders.find((p) => p.provider === providerEnumMap[localProvider.name])
+
+      if (match) {
+        localProvider.connected = true
+        localProvider.username = match.username || match.Username
+      }
+    })
+  } catch (err) {
+    console.error('Failed to load providers', err)
+  }
+})
 </script>
 
 <template>
   <button @click="logout">Logout</button>
   <div class="accountPage">
-    <ProviderAuth provider="YouTube Music" iconClass="fa-brands fa-youtube" />
-    <ProviderAuth provider="Spotify" iconClass="fa-brands fa-spotify" />
-    <ProviderAuth provider="SoundCloud" iconClass="fa-brands fa-soundcloud" />
+    <ProviderAuth
+      v-for="value in providers"
+      :key="value.name"
+      :provider="value.name"
+      :iconClass="value.icon"
+      :connected="value.connected"
+      :username="value.username"
+    />
   </div>
 </template>
 
