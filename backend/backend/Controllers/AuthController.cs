@@ -27,7 +27,7 @@ public class AuthController : ControllerBase
     {
         if (!Request.Cookies.TryGetValue("Session", out var token))
             return Unauthorized();
-        var user = await usersDao.GetUserByHashedSessionToken(sessionService.HashSessionToken(token));
+        var user = await usersDao.GetUserByHashedSessionToken(SessionService.HashSessionToken(token));
         if (user is null)
             return Unauthorized();
         var providers = await authTokensDao.GetOAuthTokenByUserId(user.UserId);
@@ -35,7 +35,7 @@ public class AuthController : ControllerBase
             .Select(p => p.Provider)
             .Distinct()
             .ToList();
-
+        
         var context = new SessionContext(user.Username, providersList);
         return Ok(context);
     }

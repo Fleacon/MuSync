@@ -13,15 +13,13 @@ public class AccountController : ControllerBase
     private SessionsDAO sessionsDao;
     private OAuthTokensDAO authTokensDao;
     private SessionService sessionService;
-    private TokenService tokenService;
 
-    public AccountController(UsersDAO usersDao, SessionsDAO sessionsDao, OAuthTokensDAO oAuthDao, SessionService sessionService, TokenService tokenService)
+    public AccountController(UsersDAO usersDao, SessionsDAO sessionsDao, OAuthTokensDAO oAuthDao, SessionService sessionService)
     {
         this.usersDao = usersDao;
         this.sessionsDao = sessionsDao;
         this.authTokensDao = oAuthDao;
         this.sessionService = sessionService;
-        this.tokenService = tokenService;
     }
 
     [HttpPost("Login")] // TODO: Implement Remember Me
@@ -42,7 +40,6 @@ public class AccountController : ControllerBase
             .ToList();
 
         await sessionService.GenerateSession(Response, user.UserId);
-        await tokenService.GenerateProviderAccess(Response, user);
         
         return Ok(new SessionContext(user.Username, providersList));
     }

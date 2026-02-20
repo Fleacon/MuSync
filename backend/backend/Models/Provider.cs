@@ -2,6 +2,7 @@
 
 public enum Provider
 {
-    YtMusic,
+    Invalid,
+    YouTubeMusic,
     Spotify
 }

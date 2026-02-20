@@ -21,11 +21,31 @@ public class OAuthTokensDAO
         while (await reader.ReadAsync())
         {
             Enum.TryParse<Provider>(reader.GetString(1), true, out var prov);
-            tokens.Add(new OAuthToken(
+            tokens.Add(new (
                 reader.GetInt32(0),
                 prov,
-                reader.GetString(3),
-                reader.GetInt32(4)));
+                reader.GetString(2),
+                reader.GetInt32(3)));
+        }
+        return tokens;
+    }
+    
+    public async Task<List<OAuthToken>> GetOAuthTokenByHashedSession(string session)
+    {
+        var tokens = new List<OAuthToken>();
+        
+        await using var conn = db.CreateConnection();
+        await using var cmd = new MySqlCommand("SELECT OAuthTokens.OAuthId, OAuthTokens.Provider, OAuthTokens.RefreshToken, OAuthTokens.UserId FROM OAuthTokens JOIN Sessions USING(UserId) WHERE SessionHash = @session", conn);
+        cmd.Parameters.AddWithValue("@session", session);
+        var reader = await cmd.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            Enum.TryParse<Provider>(reader.GetString(1), true, out var prov);
+            tokens.Add(new (
+                reader.GetInt32(0),
+                prov,
+                reader.GetString(2),
+                reader.GetInt32(3)));
         }
         return tokens;
     }
@@ -36,7 +56,7 @@ public class OAuthTokensDAO
         await using var cmd =
             new MySqlCommand(
                 "INSERT INTO OAuthTokens(Provider, RefreshToken, UserId) VALUES (@provider, @refreshToken, @userId);" +
-                "SELECT LAST_INSERT_ID();");
+                "SELECT LAST_INSERT_ID();", conn);
         cmd.Parameters.AddWithValue("@provider", authToken.Provider.ToString());
         cmd.Parameters.AddWithValue("@refreshToken", authToken.RefreshToken);
         cmd.Parameters.AddWithValue("@userId", authToken.UserId);
