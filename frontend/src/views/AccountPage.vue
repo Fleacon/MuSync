@@ -38,26 +38,29 @@ const providerEnumMap = {
 const providerEnum = (providerName) => providerEnumMap[providerName]
 
 onMounted(async () => {
-  try {
-    const response = await fetch('/api/ProviderController/LinkedProviders', {
-      credentials: 'include',
-    })
+  await Promise.all(
+    providers.value.map(async (localProvider) => {
+      const enumValue = providerEnum(localProvider.name)
 
-    if (!response.ok) return
+      try {
+        const response = await fetch(`/api/ProviderController/UserData/${enumValue}`, {
+          credentials: 'include',
+        })
 
-    const linkedProviders = await response.json()
+        if (!response.ok) return
 
-    providers.value.forEach((localProvider) => {
-      const match = linkedProviders.find((p) => p.provider === providerEnumMap[localProvider.name])
+        const data = await response.json()
 
-      if (match) {
+        if (!data || data.provider === 'Invalid') return
+
         localProvider.connected = true
-        localProvider.username = match.username || match.Username
+        localProvider.username = data.username
+        localProvider.profilePictureUrl = data.profilePictureUrl
+      } catch (err) {
+        console.error(`Failed loading ${localProvider.name}`, err)
       }
-    })
-  } catch (err) {
-    console.error('Failed to load providers', err)
-  }
+    }),
+  )
 })
 </script>
 
@@ -71,6 +74,7 @@ onMounted(async () => {
       :iconClass="value.icon"
       :connected="value.connected"
       :username="value.username"
+      :profilePictureUrl="value.profilePictureUrl"
     />
   </div>
 </template>

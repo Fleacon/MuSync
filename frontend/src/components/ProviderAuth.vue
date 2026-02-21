@@ -15,6 +15,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  profilePictureUrl: {
+    type: String,
+    default: '',
+  },
 })
 
 const providerEnumMap = {
