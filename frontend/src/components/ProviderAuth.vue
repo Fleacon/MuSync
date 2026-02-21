@@ -64,6 +64,13 @@ async function refreshToken() {
       <div class="providerText">
         <p class="providerUsername">{{ connected ? username : 'Not connected' }}</p>
         <p class="providerName">{{ provider }}</p>
+        <img
+          :src="profilePictureUrl"
+          alt="Profile Picture"
+          v-if="connected"
+          class="profilePicture"
+          referrerpolicy="no-referrer"
+        />
       </div>
     </div>
     <div class="providerButtons">
@@ -128,5 +135,11 @@ async function refreshToken() {
 
 .providerName {
   font-weight: 200;
+}
+
+.profilePicture {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
 }
 </style>
