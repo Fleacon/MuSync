@@ -121,6 +121,8 @@ public class YoutubeAPI : IProvider
         var request = youtubeService.Search.List("snippet");
         request.Q = query;
         request.MaxResults = 10;
+        request.Type = "video";
+        request.TopicId = "10"; // Music
 
         var response = await request.ExecuteAsync();
         var tracks = response.Items;
