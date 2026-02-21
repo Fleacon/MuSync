@@ -14,12 +14,14 @@ public class ProviderAuthController : ControllerBase
     private UsersDAO usersDao;
     private SessionService sessionService;
     private AuthService authService;
+    private CookieService cookieService;
 
-    public ProviderAuthController(UsersDAO usersDao, SessionService sessionService, AuthService authService)
+    public ProviderAuthController(UsersDAO usersDao, SessionService sessionService, AuthService authService, CookieService cookieService)
     {
         this.usersDao = usersDao;
         this.sessionService = sessionService;
         this.authService = authService;
+        this.cookieService = cookieService;
     }
 
     
@@ -45,15 +47,8 @@ public class ProviderAuthController : ControllerBase
         var result = await authService.HandleCallback(provider, HttpContext);
         if (result is null)
             return BadRequest();
-        //Console.WriteLine($"Refresh: {result.RefreshToken}\nAccess: {result.AccessToken}\nExpiry:{result.Expiry} ");
         await authService.CreateOAuthToken(provider, result, user.UserId);
-        Response.Cookies.Append($"AccessToken_{provider}", result.AccessToken, new ()
-        {
-            HttpOnly = true, 
-            Secure = true, 
-            SameSite = SameSiteMode.Lax, 
-            Path = "/"
-        });
+        cookieService.SetAccessToken(Response, provider, result);
         return Redirect("https://localhost:5173/account");
     }
 
@@ -68,13 +63,7 @@ public class ProviderAuthController : ControllerBase
         var newToken = await authService.RefreshAccessToken(provider, user);
         if (newToken is null)
             return BadRequest();
-        Response.Cookies.Append($"AccessToken_{provider}", newToken, new ()
-        {
-            HttpOnly = true, 
-            Secure = true, 
-            SameSite = SameSiteMode.Lax, 
-            Path = "/"
-        });
+        cookieService.SetAccessToken(Response, provider, newToken);
         return Ok();
     }
 }

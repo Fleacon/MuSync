@@ -38,6 +38,7 @@ builder.Services.AddScoped<OAuthTokensDAO>();
 builder.Services.AddScoped<SessionService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProviderApiService>();
+builder.Services.AddScoped<CookieService>();
 
 builder.Services.AddDataProtection().PersistKeysToFileSystem(new("/sec/keys/"));
 

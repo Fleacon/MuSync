@@ -52,7 +52,7 @@ public class SpotifyAPI : IProvider
         return new(response.RefreshToken, response.AccessToken, response.CreatedAt.AddSeconds(response.ExpiresIn));
     }
 
-    public Task<string> RefreshAccessToken(string refreshToken)
+    public Task<OAuthResult> RefreshAccessToken(string refreshToken)
     {
         throw new NotImplementedException();
     }
@@ -67,7 +67,12 @@ public class SpotifyAPI : IProvider
         throw new NotImplementedException();
     }
 
-    public Task<bool> IsTokenValid(string accessToken)
+    public Task<SearchQuery> SearchForTracks(string accessToken, string query)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task AddSongToPlaylist(string accessToken, string trackId, string playlistId)
     {
         throw new NotImplementedException();
     }

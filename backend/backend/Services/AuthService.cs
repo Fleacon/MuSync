@@ -41,7 +41,7 @@ public class AuthService
         return await handler.HandleCallbackAsync(httpContext);
     }
 
-    public async Task<string?> RefreshAccessToken(Provider provider, User user)
+    public async Task<OAuthResult> RefreshAccessToken(Provider provider, User user)
     {
         if (!providers.TryGetValue(provider, out var handler))
             return null;
@@ -50,17 +50,31 @@ public class AuthService
             .First(p => p.Provider == provider)
             .RefreshToken;
         var refreshToken = protector.Unprotect(encryptedRefreshToken);
-        var newAccessToken = await handler.RefreshAccessToken(refreshToken);
-        return newAccessToken;
+        var newToken = await handler.RefreshAccessToken(refreshToken);
+        return new (newToken.RefreshToken, newToken.AccessToken, newToken.Expiry);
     }
     
-    public async Task<string?> RefreshAccessToken(OAuthToken oAuth)
+    public async Task<OAuthResult> RefreshAccessToken(OAuthToken oAuth)
     {
         if (!providers.TryGetValue(oAuth.Provider, out var handler))
             return null;
         var refreshToken = protector.Unprotect(oAuth.RefreshToken);
-        var newAccessToken = await handler.RefreshAccessToken(refreshToken);
-        return newAccessToken;
+        var newToken = await handler.RefreshAccessToken(refreshToken);
+        return new (newToken.RefreshToken, newToken.AccessToken, newToken.Expiry);
+    }
+    
+    public async Task<OAuthResult?> RefreshAccessToken(Provider provider, string session)
+    {
+        if (!providers.TryGetValue(provider, out var handler))
+            return null;
+        var oAuths = await oAuthTokensDao.GetOAuthTokenByHashedSession(SessionService.HashSessionToken(session));
+        var token = oAuths
+            .FirstOrDefault(t => t.Provider == provider);
+        if (token is null)
+            return null;
+        var refreshToken = protector.Unprotect(token.RefreshToken);
+        var newToken = await handler.RefreshAccessToken(refreshToken);
+        return new (newToken.RefreshToken, newToken.AccessToken, newToken.Expiry);
     }
     
     public async Task CreateOAuthToken(Provider provider, OAuthResult result, int userId)
@@ -68,13 +82,5 @@ public class AuthService
         var refreshToken = protector.Protect(result.RefreshToken);
         
         await oAuthTokensDao.CreateOAuthToken(new(0, provider, refreshToken, userId));
-    }
-
-    public async Task<bool> IsTokenValid(Provider provider, string token)
-    {
-        if (!providers.TryGetValue(provider, out var handler))
-            return false;
-        
-        return await handler.IsTokenValid(token);
     }
 }

@@ -3,7 +3,10 @@ using DotNetEnv;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.YouTube.v3;
+using Google.Apis.YouTube.v3.Data;
 using Microsoft.AspNetCore.Mvc;
+using Playlist = backend.Models.Playlist;
+
 namespace backend.Providers;
 
 public class YoutubeAPI : IProvider
@@ -17,7 +20,8 @@ public class YoutubeAPI : IProvider
     private string[] scope = 
     {
         "https://www.googleapis.com/auth/youtube.readonly",
-        "https://www.googleapis.com/auth/userinfo.profile"
+        "https://www.googleapis.com/auth/userinfo.profile",
+        "https://www.googleapis.com/auth/youtube.force-ssl"
     };
     
     public ActionResult AuthRequest()
@@ -45,10 +49,10 @@ public class YoutubeAPI : IProvider
 
         var tokenResponse = await flow.ExchangeCodeForTokenAsync("default", code, redirectUri, CancellationToken.None);
 
-        return new (tokenResponse.RefreshToken, tokenResponse.AccessToken, DateTime.MaxValue);
+        return new (tokenResponse.RefreshToken, tokenResponse.AccessToken, DateTime.Now.AddSeconds((double)tokenResponse.ExpiresInSeconds));
     }
     
-    public async Task<string> RefreshAccessToken(string refreshToken)
+    public async Task<OAuthResult> RefreshAccessToken(string refreshToken)
     {
         var flow = new GoogleAuthorizationCodeFlow(new()
         {
@@ -57,7 +61,7 @@ public class YoutubeAPI : IProvider
         });
 
         var tokenResponse = await flow.RefreshTokenAsync("default", refreshToken, CancellationToken.None);
-        return tokenResponse.AccessToken;
+        return new (tokenResponse.RefreshToken, tokenResponse.AccessToken, DateTime.Now.AddSeconds((double)tokenResponse.ExpiresInSeconds));
     }
 
     public async Task<UserPlaylists> GetUserPlaylists(string accessToken)
@@ -95,27 +99,73 @@ public class YoutubeAPI : IProvider
         
         if (channel == null)
             return null;
+        
+        var thumbnails = channel.Snippet.Thumbnails;
 
-        return new (Provider, channel.Snippet.Title);
+        var profilePicture =
+            thumbnails?.High?.Url ??
+            thumbnails?.Medium?.Url ??
+            thumbnails?.Default__?.Url ??
+            "";
+        Console.Write(profilePicture);
+        return new (Provider, channel.Snippet.Title, profilePicture);
     }
 
-    public async Task<bool> IsTokenValid(string accessToken)
+    public async Task<SearchQuery> SearchForTracks(string accessToken, string query)
     {
-        try
+        var youtubeService = new YouTubeService(new()
         {
-            var service = new YouTubeService(new()
+            HttpClientInitializer = GoogleCredential.FromAccessToken(accessToken)
+        });
+
+        var request = youtubeService.Search.List("snippet");
+        request.Q = query;
+        request.MaxResults = 10;
+
+        var response = await request.ExecuteAsync();
+        var tracks = response.Items;
+
+        List<Track> searchQuery = [];
+
+        foreach (var t in tracks)
+        {
+            var uploaderRequest = youtubeService.Channels.List("snippet");
+            uploaderRequest.Id = t.Snippet.ChannelId;
+            
+            var uploaderResponse = await request.ExecuteAsync();
+            
+            var id = t.Id.ToString();
+            var title = t.Snippet.Title;
+            var thumbnailUrl = t.Snippet.Thumbnails.Standard.Url;
+            var uploaderName = t.Snippet.ChannelTitle;
+            var uploaderImgUrl = uploaderResponse.Items.First().Snippet.Thumbnails.Standard.Url;
+            
+            searchQuery.Add(new (id, title, thumbnailUrl, uploaderName, uploaderImgUrl));
+        }
+
+        return new(Provider, searchQuery);
+    }
+
+    public async Task AddSongToPlaylist(string accessToken, string trackId, string playlistId)
+    {
+        var youtubeService = new YouTubeService(new()
+        {
+            HttpClientInitializer = GoogleCredential.FromAccessToken(accessToken)
+        });
+
+        var playlistItem = new PlaylistItem
+        {
+            Snippet = new ()
             {
-                HttpClientInitializer = GoogleCredential.FromAccessToken(accessToken)
-            });
-            var request = service.Channels.List("id");
-            request.Mine = true;
-            await request.ExecuteAsync();
-            Console.WriteLine(request);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+                PlaylistId = playlistId,
+                ResourceId = new ()
+                {
+                    VideoId = trackId
+                }
+            }
+        };
+
+        var request = youtubeService.PlaylistItems.Insert(playlistItem, "snippet");
+        await request.ExecuteAsync();
     }
 }

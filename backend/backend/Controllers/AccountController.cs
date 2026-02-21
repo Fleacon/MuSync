@@ -13,13 +13,15 @@ public class AccountController : ControllerBase
     private SessionsDAO sessionsDao;
     private OAuthTokensDAO authTokensDao;
     private SessionService sessionService;
+    private CookieService cookieService;
 
-    public AccountController(UsersDAO usersDao, SessionsDAO sessionsDao, OAuthTokensDAO oAuthDao, SessionService sessionService)
+    public AccountController(UsersDAO usersDao, SessionsDAO sessionsDao, OAuthTokensDAO oAuthDao, SessionService sessionService, CookieService cookieService)
     {
         this.usersDao = usersDao;
         this.sessionsDao = sessionsDao;
         this.authTokensDao = oAuthDao;
         this.sessionService = sessionService;
+        this.cookieService = cookieService;
     }
 
     [HttpPost("Login")] // TODO: Implement Remember Me
@@ -39,7 +41,9 @@ public class AccountController : ControllerBase
             .Distinct()
             .ToList();
 
-        await sessionService.GenerateSession(Response, user.UserId);
+        string token = sessionService.GenerateSessionToken();
+        var session = await sessionService.GenerateSession(user.UserId, token);
+        cookieService.SetSession(Response, token, session.ExpiryDate);
         
         return Ok(new SessionContext(user.Username, providersList));
     }
@@ -56,7 +60,9 @@ public class AccountController : ControllerBase
 
         var newUser = await usersDao.CreateUser(new(0, username, hashedPw));
 
-        await sessionService.GenerateSession(Response, newUser.UserId);
+        string token = sessionService.GenerateSessionToken();
+        var session = await sessionService.GenerateSession(newUser.UserId, token);
+        cookieService.SetSession(Response, token, session.ExpiryDate);
 
         return Ok(new SessionContext(newUser.Username, null));
     }

@@ -32,35 +32,19 @@ public class ProviderApiService
         return await handler.GetUserPlaylists(token);
     }
 
-    public async Task<ProviderAccess> GetUserData(OAuthToken oAuth, HttpContext httpContext)
+    public async Task<ProviderAccess> GetUserData(Provider provider, string token)
     {
-        if (!providers.TryGetValue(oAuth.Provider, out var handler))
-            return new (Provider.Invalid, "Invalid");
-        
-        if (!httpContext.Request.Cookies.TryGetValue($"AccessToken_{oAuth.Provider.ToString()}", out var token))
-            return new(oAuth.Provider, "Invalid");
-
-        if (!await authService.IsTokenValid(oAuth.Provider, token))
-        {
-            var newToken = await authService.RefreshAccessToken(oAuth);
-            httpContext.Response.Cookies.Append($"AccessToken_{oAuth.Provider.ToString()}", newToken);
-        }
+        if (!providers.TryGetValue(provider, out var handler))
+            return new (Provider.Invalid, "Invalid", "-");
         
         return await handler.GetUserData(token);
     }
 
-    public async Task<IReadOnlyList<ProviderAccess>> GetConnectedUserData(HttpContext httpContext)
+    public async Task<SearchQuery> SearchForTracks(Provider provider, string token, string search)
     {
-        List<ProviderAccess> providerAccesses = [];
+        if (!providers.TryGetValue(provider, out var handler))
+            return new (Provider.Invalid, Array.Empty<Track>());
         
-        var session = httpContext.Request.Cookies["Session"];
-        var tokens = await oAuthTokensDao.GetOAuthTokenByHashedSession(SessionService.HashSessionToken(session));
-
-        foreach (var t in tokens)
-        {
-            providerAccesses.Add(await GetUserData(t, httpContext));
-        }
-
-        return providerAccesses;
+        return await handler.SearchForTracks(token, search);
     }
 }
