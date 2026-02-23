@@ -11,6 +11,7 @@ public class AuthController : ControllerBase
 {
     private readonly SessionService sessionService;
     private readonly AuthService authService;
+    private readonly CookieService cookieService;
 
     public AuthController(SessionService sessionService, AuthService authService)
     {
@@ -27,6 +28,9 @@ public class AuthController : ControllerBase
         var user = await sessionService.GetUserBySessionToken(token);
         if (user is null)
             return Unauthorized();
+        
+        var refreshedSession = await sessionService.RefreshSession(token);
+        cookieService.SetSession(Response, token, refreshedSession!.ExpiryDate);
 
         var providers = await authService.GetLinkedProviders(user.UserId);
 

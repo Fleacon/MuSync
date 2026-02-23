@@ -7,22 +7,24 @@ namespace backend.Services;
 
 public class SessionService
 {
-    private readonly SessionsDAO _sessionsDao;
-    private readonly UsersDAO _usersDao;
+    private readonly SessionsDAO sessionsDao;
+    private readonly UsersDAO usersDao;
+
+    private int expiryTime = 30; // In Minutes 
 
     public SessionService(SessionsDAO sessionsDao, UsersDAO usersDao)
     {
-        _sessionsDao = sessionsDao;
-        _usersDao = usersDao;
+        this.sessionsDao = sessionsDao;
+        this.usersDao = usersDao;
     }
 
     public async Task<Session> GenerateSession(int uId, string token)
     {
         var creationDate = DateTime.Now;
-        var expiryDate = creationDate.AddHours(24);
+        var expiryDate = creationDate.AddMinutes(expiryTime);
         var sessionHash = HashSessionToken(token);
 
-        return await _sessionsDao.CreateSession(new(0, creationDate, expiryDate, uId, sessionHash));
+        return await sessionsDao.CreateSession(new(0, creationDate, expiryDate, uId, sessionHash));
     }
 
     public string GenerateSessionToken()
@@ -41,17 +43,27 @@ public class SessionService
     public async Task<bool> DeleteSession(string token)
     {
         var hashedToken = HashSessionToken(token);
-        var session = await _sessionsDao.GetSessionByHash(hashedToken);
+        var session = await sessionsDao.GetSessionByHash(hashedToken);
         if (session is null)
             return false;
-        await _sessionsDao.RemoveSessionById(session.SessionId);
+        await sessionsDao.RemoveSessionById(session.SessionId);
         return true;
     }
     
     public async Task<User?> GetUserBySessionToken(string rawToken)
     {
         var hash = HashSessionToken(rawToken);
-        return await _usersDao.GetUserByHashedSessionToken(hash);
+        return await usersDao.GetUserByHashedSessionToken(hash);
+    }
+
+    public async Task<Session?> RefreshSession(string token)
+    {
+        var hashedToken = HashSessionToken(token);
+        var session = await sessionsDao.GetSessionByHash(hashedToken);
+        if (session is null)
+            return null;
+        var newExpiryDate = DateTime.Now.AddMinutes(expiryTime);
+        return await sessionsDao.UpdateExpiryDateById(session.SessionId, newExpiryDate);
     }
 
     public static string HashSessionToken(string token)
