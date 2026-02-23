@@ -71,6 +71,15 @@ public class AccountController : ControllerBase
         if (isDeleted)
         {
             Response.Cookies.Delete("Session");
+            
+            foreach (var cookie in Request.Cookies.Keys)
+            {
+                if (cookie.StartsWith("AccessToken_"))
+                {
+                    Response.Cookies.Delete(cookie);
+                }
+            }
+            
             return Ok();
         }
 
