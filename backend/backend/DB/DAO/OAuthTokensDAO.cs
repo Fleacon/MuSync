@@ -1,4 +1,5 @@
-﻿using backend.Models;
+﻿using System.Data.Common;
+using backend.Models;
 using Google.Protobuf.Reflection;
 using MySql.Data.MySqlClient;
 
@@ -15,17 +16,12 @@ public class OAuthTokensDAO
         var tokens = new List<OAuthToken>();
         
         await using var conn = db.CreateConnection();
-        await using var cmd = new MySqlCommand("SELECT * FROM OAuthTokens WHERE UserId = @user", conn);
+        await using var cmd = new MySqlCommand("SELECT OAuthId, Provider, RefreshToken, UserId FROM OAuthTokens WHERE UserId = @user", conn);
         cmd.Parameters.AddWithValue("@user", userId);
-        var reader = await cmd.ExecuteReaderAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
-            Enum.TryParse<Provider>(reader.GetString(1), true, out var prov);
-            tokens.Add(new (
-                reader.GetInt32(0),
-                prov,
-                reader.GetString(2),
-                reader.GetInt32(3)));
+            tokens.Add(MapOAuthToken(reader));
         }
         return tokens;
     }
@@ -37,15 +33,10 @@ public class OAuthTokensDAO
         await using var conn = db.CreateConnection();
         await using var cmd = new MySqlCommand("SELECT OAuthTokens.OAuthId, OAuthTokens.Provider, OAuthTokens.RefreshToken, OAuthTokens.UserId FROM OAuthTokens JOIN Sessions USING(UserId) WHERE SessionHash = @session", conn);
         cmd.Parameters.AddWithValue("@session", session);
-        var reader = await cmd.ExecuteReaderAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
-            Enum.TryParse<Provider>(reader.GetString(1), true, out var prov);
-            tokens.Add(new (
-                reader.GetInt32(0),
-                prov,
-                reader.GetString(2),
-                reader.GetInt32(3)));
+            tokens.Add(MapOAuthToken(reader));
         }
         return tokens;
     }
@@ -65,5 +56,20 @@ public class OAuthTokensDAO
         authToken.OAuthId = Convert.ToInt32(result);
 
         return authToken;
+    }
+
+    private static OAuthToken MapOAuthToken(DbDataReader reader)
+    {
+        Enum.TryParse<Provider>(
+            reader.GetString(reader.GetOrdinal("Provider")),
+            true,
+            out var provider);
+
+        return new (
+            reader.GetInt32(reader.GetOrdinal("OAuthId")),
+            provider,
+            reader.GetString(reader.GetOrdinal("RefreshToken")),
+            reader.GetInt32(reader.GetOrdinal("UserId"))
+        );
     }
 }

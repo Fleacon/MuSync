@@ -1,4 +1,5 @@
-﻿using backend.Models;
+﻿using System.Data.Common;
+using backend.Models;
 using MySql.Data.MySqlClient;
 
 namespace backend.DB.DAO;
@@ -13,12 +14,12 @@ public class UsersDAO
     {
         await using var conn = db.CreateConnection();
         await using var cmd = new MySqlCommand(
-            "SELECT * FROM Users WHERE UserId = @id", conn);
+            "SELECT UserId, Username, Password FROM Users WHERE UserId = @id", conn);
         cmd.Parameters.AddWithValue("@id", id);
-        var reader = await cmd.ExecuteReaderAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
         if (await reader.ReadAsync())
         {
-            return new (reader.GetInt32(0), reader.GetString(1), reader.GetString(2));
+            return MapUser(reader);
         }
         return null;
     }
@@ -27,12 +28,12 @@ public class UsersDAO
     {
         await using var conn = db.CreateConnection();
         await using var cmd = new MySqlCommand(
-            "SELECT * FROM Users WHERE Username = @name", conn);
+            "SELECT UserId, Username, Password FROM Users WHERE Username = @name", conn);
         cmd.Parameters.AddWithValue("@name", name);
-        var reader = await cmd.ExecuteReaderAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
         if (await reader.ReadAsync())
         {
-            return new (reader.GetInt32(0), reader.GetString(1), reader.GetString(2));
+            return MapUser(reader);
         }
         return null;
     }
@@ -41,12 +42,12 @@ public class UsersDAO
     {
         await using var conn = db.CreateConnection();
         await using var cmd = new MySqlCommand(
-            "SELECT * FROM Users JOIN Sessions USING(UserId) WHERE SessionHash = @token", conn);
+            "SELECT UserId, Username, Password FROM Users JOIN Sessions USING(UserId) WHERE SessionHash = @token", conn);
         cmd.Parameters.AddWithValue("@token", token);
-        var reader = await cmd.ExecuteReaderAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
         if (await reader.ReadAsync())
         {
-            return new (reader.GetInt32(0), reader.GetString(1), reader.GetString(2));
+            return MapUser(reader);
         }
         return null;
     }
@@ -63,5 +64,14 @@ public class UsersDAO
         user.UserId = Convert.ToInt32(result);
         
         return user;
+    }
+    
+    private static User MapUser(DbDataReader reader)
+    {
+        return new (
+            reader.GetInt32(reader.GetOrdinal("UserId")),
+            reader.GetString(reader.GetOrdinal("Username")),
+            reader.GetString(reader.GetOrdinal("Password"))
+        );
     }
 }

@@ -1,4 +1,5 @@
-﻿using backend.Models;
+﻿using System.Data.Common;
+using backend.Models;
 using MySql.Data.MySqlClient;
 
 namespace backend.DB.DAO;
@@ -12,12 +13,12 @@ public class SessionsDAO
     public async Task<Session?> GetSessionById(int id)
     {
         await using var conn = db.CreateConnection();
-        await using var cmd = new MySqlCommand("SELECT * FROM Sessions WHERE SessionId = @sessionId", conn);
+        await using var cmd = new MySqlCommand("SELECT SessionId, CreationDate, ExpiryDate, UserId, SessionHash FROM Sessions WHERE SessionId = @sessionId", conn);
         cmd.Parameters.AddWithValue("@sessionId", id);
-        var reader = await cmd.ExecuteReaderAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
         if (await reader.ReadAsync())
         {
-            return new (reader.GetInt32(0), reader.GetDateTime(1), reader.GetDateTime(2), reader.GetInt32(3), reader.GetString(4));
+            return MapSession(reader);
         }
         return null;
     }
@@ -25,14 +26,14 @@ public class SessionsDAO
     public async Task<List<Session>> GetSessionByUserId(int id)
     {
         await using var conn = db.CreateConnection();
-        await using var cmd = new MySqlCommand("SELECT * FROM Sessions WHERE UserId = @userId", conn);
+        await using var cmd = new MySqlCommand("SELECT SessionId, CreationDate, ExpiryDate, UserId, SessionHash FROM Sessions WHERE UserId = @userId", conn);
         cmd.Parameters.AddWithValue("@userId", id);
-        var reader = await cmd.ExecuteReaderAsync();
-
+        await using var reader = await cmd.ExecuteReaderAsync();
+        
         var sessions = new List<Session>();
         while (await reader.ReadAsync())
         {
-            sessions.Add(new(reader.GetInt32(0), reader.GetDateTime(1), reader.GetDateTime(2), reader.GetInt32(3), reader.GetString(4)));
+            sessions.Add(MapSession(reader));
         }
         
         return sessions;
@@ -41,12 +42,12 @@ public class SessionsDAO
     public async Task<Session?> GetSessionByHash(string hash)
     {
         await using var conn = db.CreateConnection();
-        await using var cmd = new MySqlCommand("SELECT * FROM Sessions WHERE SessionHash = @hash", conn);
+        await using var cmd = new MySqlCommand("SELECT SessionId, CreationDate, ExpiryDate, UserId, SessionHash FROM Sessions WHERE SessionHash = @hash", conn);
         cmd.Parameters.AddWithValue("@hash", hash);
-        var reader = await cmd.ExecuteReaderAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
         if (await reader.ReadAsync())
         {
-            return new (reader.GetInt32(0), reader.GetDateTime(1), reader.GetDateTime(2), reader.GetInt32(3), reader.GetString(4));
+            return MapSession(reader);
         }
         return null;
     }
@@ -73,6 +74,28 @@ public class SessionsDAO
         await using var conn = db.CreateConnection();
         await using var cmd = new MySqlCommand("DELETE FROM Sessions WHERE SessionId = @sessionId", conn);
         cmd.Parameters.AddWithValue("@sessionId", sessionId);
-        await cmd.ExecuteScalarAsync();
+        await cmd.ExecuteNonQueryAsync();
+    }
+
+    public async Task<Session> UpdateExpiryDateById(int sessionId, DateTime newExpiry)
+    {
+        await using var conn = db.CreateConnection();
+        await using var cmd = new MySqlCommand("UPDATE Sessions SET ExpiryDate = @newExpiry WHERE SessionId = @sessionId", conn);
+        cmd.Parameters.AddWithValue("@newExpiry", newExpiry);
+        cmd.Parameters.AddWithValue("@sessionId", sessionId);
+        await cmd.ExecuteNonQueryAsync();
+
+        return await GetSessionById(sessionId);
+    }
+    
+    private static Session MapSession(DbDataReader reader)
+    {
+        return new (
+            reader.GetInt32(reader.GetOrdinal("SessionId")),
+            reader.GetDateTime(reader.GetOrdinal("CreationDate")),
+            reader.GetDateTime(reader.GetOrdinal("ExpiryDate")),
+            reader.GetInt32(reader.GetOrdinal("UserId")),
+            reader.GetString(reader.GetOrdinal("SessionHash"))
+        );
     }
 }
