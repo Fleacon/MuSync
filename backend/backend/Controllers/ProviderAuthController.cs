@@ -11,28 +11,27 @@ namespace backend.Controllers;
 [Route("api/ProviderAuth")]
 public class ProviderAuthController : ControllerBase
 {
-    private UsersDAO usersDao;
-    private SessionService sessionService;
-    private AuthService authService;
-    private CookieService cookieService;
+    private readonly SessionService sessionService;
+    private readonly AuthService authService;
+    private readonly CookieService cookieService;
 
-    public ProviderAuthController(UsersDAO usersDao, SessionService sessionService, AuthService authService, CookieService cookieService)
+    public ProviderAuthController(SessionService sessionService, AuthService authService, CookieService cookieService)
     {
-        this.usersDao = usersDao;
         this.sessionService = sessionService;
         this.authService = authService;
         this.cookieService = cookieService;
     }
 
-    
     [HttpGet("Login/{provider}")]
     public async Task<ActionResult> Login(Provider provider)
     {
         if (!Request.Cookies.TryGetValue("Session", out var token))
             return Unauthorized();
-        var user = await usersDao.GetUserByHashedSessionToken(SessionService.HashSessionToken(token));
+
+        var user = await sessionService.GetUserBySessionToken(token);
         if (user is null)
             return Unauthorized();
+
         return authService.RequestAuth(provider);
     }
 
@@ -41,14 +40,18 @@ public class ProviderAuthController : ControllerBase
     {
         if (!Request.Cookies.TryGetValue("Session", out var token))
             return Unauthorized();
-        var user = await usersDao.GetUserByHashedSessionToken(SessionService.HashSessionToken(token));
+
+        var user = await sessionService.GetUserBySessionToken(token);
         if (user is null)
             return Unauthorized();
+
         var result = await authService.HandleCallback(provider, HttpContext);
         if (result is null)
             return BadRequest();
+
         await authService.CreateOAuthToken(provider, result, user.UserId);
         cookieService.SetAccessToken(Response, provider, result);
+
         return Redirect("https://localhost:5173/account");
     }
 
@@ -57,12 +60,15 @@ public class ProviderAuthController : ControllerBase
     {
         if (!Request.Cookies.TryGetValue("Session", out var token))
             return Unauthorized();
-        var user = await usersDao.GetUserByHashedSessionToken(SessionService.HashSessionToken(token));
+
+        var user = await sessionService.GetUserBySessionToken(token);
         if (user is null)
             return Unauthorized();
+
         var newToken = await authService.RefreshAccessToken(provider, user);
         if (newToken is null)
             return BadRequest();
+
         cookieService.SetAccessToken(Response, provider, newToken);
         return Ok();
     }

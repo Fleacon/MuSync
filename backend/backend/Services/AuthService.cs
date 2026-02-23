@@ -11,14 +11,13 @@ public class AuthService
 
     private Dictionary<Provider, IProvider> providers = new()
     {
-        { Provider.Spotify, new Providers.SpotifyAPI()},
-        { Provider.YouTubeMusic, new YoutubeAPI()}
+        { Provider.Spotify, new Providers.SpotifyAPI() },
+        { Provider.YouTubeMusic, new YoutubeAPI() }
     };
 
     private readonly IDataProtector protector;
+    private readonly OAuthTokensDAO oAuthTokensDao;
 
-    private OAuthTokensDAO oAuthTokensDao;
-    
     public AuthService(OAuthTokensDAO oAuthDao, IDataProtectionProvider protector)
     {
         oAuthTokensDao = oAuthDao;
@@ -32,7 +31,7 @@ public class AuthService
 
         return handler.AuthRequest();
     }
-    
+
     public async Task<OAuthResult?> HandleCallback(Provider provider, HttpContext httpContext)
     {
         if (!providers.TryGetValue(provider, out var handler))
@@ -41,7 +40,7 @@ public class AuthService
         return await handler.HandleCallbackAsync(httpContext);
     }
 
-    public async Task<OAuthResult> RefreshAccessToken(Provider provider, User user)
+    public async Task<OAuthResult?> RefreshAccessToken(Provider provider, User user)
     {
         if (!providers.TryGetValue(provider, out var handler))
             return null;
@@ -51,36 +50,40 @@ public class AuthService
             .RefreshToken;
         var refreshToken = protector.Unprotect(encryptedRefreshToken);
         var newToken = await handler.RefreshAccessToken(refreshToken);
-        return new (newToken.RefreshToken, newToken.AccessToken, newToken.Expiry);
+        return new(newToken.RefreshToken, newToken.AccessToken, newToken.Expiry);
     }
-    
-    public async Task<OAuthResult> RefreshAccessToken(OAuthToken oAuth)
+
+    public async Task<OAuthResult?> RefreshAccessToken(OAuthToken oAuth)
     {
         if (!providers.TryGetValue(oAuth.Provider, out var handler))
             return null;
         var refreshToken = protector.Unprotect(oAuth.RefreshToken);
         var newToken = await handler.RefreshAccessToken(refreshToken);
-        return new (newToken.RefreshToken, newToken.AccessToken, newToken.Expiry);
+        return new(newToken.RefreshToken, newToken.AccessToken, newToken.Expiry);
     }
-    
+
     public async Task<OAuthResult?> RefreshAccessToken(Provider provider, string session)
     {
         if (!providers.TryGetValue(provider, out var handler))
             return null;
         var oAuths = await oAuthTokensDao.GetOAuthTokenByHashedSession(SessionService.HashSessionToken(session));
-        var token = oAuths
-            .FirstOrDefault(t => t.Provider == provider);
+        var token = oAuths.FirstOrDefault(t => t.Provider == provider);
         if (token is null)
             return null;
         var refreshToken = protector.Unprotect(token.RefreshToken);
         var newToken = await handler.RefreshAccessToken(refreshToken);
-        return new (newToken.RefreshToken, newToken.AccessToken, newToken.Expiry);
+        return new(newToken.RefreshToken, newToken.AccessToken, newToken.Expiry);
     }
-    
+
     public async Task CreateOAuthToken(Provider provider, OAuthResult result, int userId)
     {
         var refreshToken = protector.Protect(result.RefreshToken);
-        
         await oAuthTokensDao.CreateOAuthToken(new(0, provider, refreshToken, userId));
+    }
+
+    public async Task<IReadOnlyList<Provider>> GetLinkedProviders(int userId)
+    {
+        var tokens = await oAuthTokensDao.GetOAuthTokenByUserId(userId);
+        return tokens.Select(t => t.Provider).Distinct().ToList();
     }
 }

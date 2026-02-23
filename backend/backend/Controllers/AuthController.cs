@@ -9,34 +9,27 @@ namespace backend.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private SessionsDAO sessionsDao;
-    private UsersDAO usersDao;
-    private OAuthTokensDAO authTokensDao;
-    private SessionService sessionService;
+    private readonly SessionService sessionService;
+    private readonly AuthService authService;
 
-    public AuthController(SessionsDAO sessionsDao, UsersDAO usersDao, OAuthTokensDAO authTokensDao, SessionService sessionService)
+    public AuthController(SessionService sessionService, AuthService authService)
     {
-        this.sessionsDao = sessionsDao;
-        this.usersDao = usersDao;
-        this.authTokensDao = authTokensDao;
         this.sessionService = sessionService;
+        this.authService = authService;
     }
-    
+
     [HttpGet("Me")]
     public async Task<ActionResult<SessionContext>> GetSessionContext()
     {
         if (!Request.Cookies.TryGetValue("Session", out var token))
             return Unauthorized();
-        var user = await usersDao.GetUserByHashedSessionToken(SessionService.HashSessionToken(token));
+
+        var user = await sessionService.GetUserBySessionToken(token);
         if (user is null)
             return Unauthorized();
-        var providers = await authTokensDao.GetOAuthTokenByUserId(user.UserId);
-        var providersList = providers
-            .Select(p => p.Provider)
-            .Distinct()
-            .ToList();
-        
-        var context = new SessionContext(user.Username, providersList);
-        return Ok(context);
+
+        var providers = await authService.GetLinkedProviders(user.UserId);
+
+        return Ok(new SessionContext(user.Username, providers));
     }
 }

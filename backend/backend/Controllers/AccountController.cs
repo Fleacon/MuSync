@@ -9,58 +9,52 @@ namespace backend.Controllers;
 [Route("api/[controller]")]
 public class AccountController : ControllerBase
 {
-    private UsersDAO usersDao;
-    private SessionsDAO sessionsDao;
-    private OAuthTokensDAO authTokensDao;
-    private SessionService sessionService;
-    private CookieService cookieService;
+    private readonly AccountService accountService;
+    private readonly SessionService sessionService;
+    private readonly AuthService authService;
+    private readonly CookieService cookieService;
 
-    public AccountController(UsersDAO usersDao, SessionsDAO sessionsDao, OAuthTokensDAO oAuthDao, SessionService sessionService, CookieService cookieService)
+    public AccountController(AccountService accountService, SessionService sessionService, AuthService authService, CookieService cookieService)
     {
-        this.usersDao = usersDao;
-        this.sessionsDao = sessionsDao;
-        this.authTokensDao = oAuthDao;
+        this.accountService = accountService;
         this.sessionService = sessionService;
+        this.authService = authService;
         this.cookieService = cookieService;
     }
 
-    [HttpPost("Login")] // TODO: Implement Remember Me
+    [HttpPost("Login")]
     public async Task<ActionResult<SessionContext>> TryLogin([FromBody] UserAuthData userAuthData)
     {
-        var user = await usersDao.GetUserByUsername(userAuthData.Username);
+        User? user;
+        try
+        {
+            user = await accountService.ValidateCredentials(userAuthData.Username, userAuthData.Password);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Unauthorized();
+        }
+
         if (user is null)
             return NotFound();
 
-        string storedPw = user.PasswordHash;
-        if (!PasswordService.VerifyPassword(storedPw, userAuthData.Password))
-            return Unauthorized();
-        
-        var providers = await authTokensDao.GetOAuthTokenByUserId(user.UserId);
-        var providersList = providers
-            .Select(p => p.Provider)
-            .Distinct()
-            .ToList();
+        var providers = await authService.GetLinkedProviders(user.UserId);
 
-        string token = sessionService.GenerateSessionToken();
+        var token = sessionService.GenerateSessionToken();
         var session = await sessionService.GenerateSession(user.UserId, token);
         cookieService.SetSession(Response, token, session.ExpiryDate);
-        
-        return Ok(new SessionContext(user.Username, providersList));
+
+        return Ok(new SessionContext(user.Username, providers));
     }
 
     [HttpPost("Register")]
     public async Task<ActionResult<SessionContext>> TryRegister([FromBody] UserAuthData userAuthData)
     {
-        var user = await usersDao.GetUserByUsername(userAuthData.Username);
-        if (user is not null)
+        var newUser = await accountService.CreateAccount(userAuthData.Username, userAuthData.Password);
+        if (newUser is null)
             return Conflict();
 
-        string username = userAuthData.Username;
-        string hashedPw = PasswordService.HashPassword(userAuthData.Password);
-
-        var newUser = await usersDao.CreateUser(new(0, username, hashedPw));
-
-        string token = sessionService.GenerateSessionToken();
+        var token = sessionService.GenerateSessionToken();
         var session = await sessionService.GenerateSession(newUser.UserId, token);
         cookieService.SetSession(Response, token, session.ExpiryDate);
 
@@ -71,15 +65,15 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> LogOut()
     {
         if (!Request.Cookies.TryGetValue("Session", out var sToken))
-        {
             return NoContent();
-        }
+
         bool isDeleted = await sessionService.DeleteSession(sToken);
         if (isDeleted)
         {
             Response.Cookies.Delete("Session");
             return Ok();
         }
-        return NotFound();   
+
+        return NotFound();
     }
 }
