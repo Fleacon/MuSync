@@ -55,26 +55,73 @@ public class SpotifyAPI : IProvider
 
     public async Task<OAuthResult> RefreshAccessTokenAsync(string refreshToken)
     {
-        throw new NotImplementedException();
+        var newToken = await new OAuthClient().RequestToken(
+            new AuthorizationCodeRefreshRequest(clientId, clientSecret, refreshToken)
+            );
+        return new(newToken.RefreshToken, newToken.AccessToken, newToken.CreatedAt.AddSeconds(newToken.ExpiresIn));
     }
 
     public async Task<UserPlaylists> GetUserPlaylistsAsync(string accessToken)
     {
-        throw new NotImplementedException();
+        var client = new SpotifyClient(accessToken);
+        var id = client.UserProfile.Current().Result.Id;
+        var response = await client.Playlists.GetUsers(id);
+        
+        List<Playlist> playlists = [];
+        foreach (var p in response.Items)
+        {
+            playlists.Add(new(p.Id, p.Name, p.Images.FirstOrDefault().Url));
+        }
+
+        return new(Provider, playlists);
     }
 
     public async Task<ProviderAccess> GetUserDataAsync(string accessToken)
     {
-        throw new NotImplementedException();
+        var client = new SpotifyClient(accessToken);
+        var response = await client.UserProfile.Current();
+
+        string thumbnail = "";
+        if (response.Images.FirstOrDefault() is not null)
+        {
+            thumbnail = response.Images.FirstOrDefault().Url;   
+        }
+
+        return new(Provider, response.DisplayName, thumbnail);
     }
 
     public async Task<SearchQuery> SearchForTracksAsync(string accessToken, string query)
     {
-        throw new NotImplementedException();
+        var client = new SpotifyClient(accessToken);
+        var searchRequest = new SearchRequest(SearchRequest.Types.Track, query)
+        {
+            Limit = 10
+        };
+        var response = await client.Search.Item(searchRequest);
+
+        List<Track> tracks = [];
+        foreach (var t in response.Tracks.Items)
+        {
+            var album = t.Album;
+
+            var uploaderResult = await client.Artists.Get(album.Artists.First().Id);
+
+            var id = album.Id;
+            var title = album.Name;
+            var thumbnailUrl = album.Images.First().Url;
+            var artistsName = string.Join(", ", album.Artists);
+            var uploaderImgUrl = uploaderResult.Images.First().Url;
+            
+            tracks.Add(new(id, title, thumbnailUrl, artistsName, uploaderImgUrl));
+        }
+
+        return new(Provider, tracks);
     }
 
     public async Task AddSongToPlaylistAsync(string accessToken, string trackId, string playlistId)
     {
-        throw new NotImplementedException();
+        var client = new SpotifyClient(accessToken);
+        
+        await client.Playlists.AddItems(playlistId, new (new List<string> {$"spotify:track:{trackId}"}));
     }
 }
