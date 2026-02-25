@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace backend.Controllers;
 
 [ApiController]
-[Route("api/ProviderController")]
+[Route("api/Provider")]
 public class ProviderController : ControllerBase
 {
     private readonly ProviderApiService apiService;
@@ -43,5 +43,29 @@ public class ProviderController : ControllerBase
         }
 
         return Ok(await apiService.GetUserData(provider, token));
+    }
+
+    [HttpGet("Search/{provider}")]
+    public async Task<ActionResult<SearchQuery>> SearchForTracks(Provider provider)
+    {
+        if (!Request.Cookies.TryGetValue("Session", out var sToken))
+            return Unauthorized();
+        if (string.IsNullOrWhiteSpace(Request.Query["q"]))
+            return NoContent();
+        if (!Request.Cookies.TryGetValue($"AccessToken_{provider.ToString()}", out var token))
+        {
+            var newToken = await authService.RefreshAccessToken(provider, sToken);
+            if (newToken is null)
+                return NoContent();
+            cookieService.SetAccessToken(Response, provider, newToken);
+            token = newToken.AccessToken;
+        }
+
+        var q = Request.Query["q"];
+        Console.WriteLine($"Search Start | Query: {q}");
+        var query = await apiService.SearchForTracks(provider, token, q);
+        Console.WriteLine("Search Done");
+        
+        return Ok(query);
     }
 }
