@@ -52,7 +52,7 @@ public class ProviderAuthController : ControllerBase
         await authService.CreateOAuthToken(provider, result, user.UserId);
         cookieService.SetAccessToken(Response, provider, result);
 
-        return Redirect("https://localhost:5173/account");
+        return Redirect("https://127.0.0.1:5173/account");
     }
 
     [HttpGet("Refresh/{provider}")]
