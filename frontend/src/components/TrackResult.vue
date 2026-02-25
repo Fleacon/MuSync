@@ -63,7 +63,7 @@ const props = defineProps({
   padding: 10px;
   cursor: pointer;
   gap: 1rem;
-  height: 45%;
+  height: 20vh;
   width: 100%;
 }
 
@@ -74,14 +74,13 @@ const props = defineProps({
 .imgContainer {
   display: flex;
   height: 100%;
-  width: 40%;
+  width: 45%;
   flex-shrink: 0;
   justify-content: center;
   align-items: center;
 }
 
 .thumbnail {
-  flex-shrink: 0;
   height: 100%;
   aspect-ratio: 1/1;
   object-fit: cover;
@@ -90,7 +89,6 @@ const props = defineProps({
 .youtubeThumbnail {
   aspect-ratio: 16/9;
   width: 100%;
-  height: fit-content;
   object-fit: cover;
 }
 
@@ -130,7 +128,7 @@ const props = defineProps({
 
 .uploaderName {
   font-weight: 200;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   margin-left: 0.5rem;
 }
 </style>
