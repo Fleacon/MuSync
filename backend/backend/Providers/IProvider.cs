@@ -9,14 +9,14 @@ public interface IProvider
     public ActionResult AuthRequest();
     public Task<OAuthResult> HandleCallbackAsync(HttpContext httpContext);
 
-    public Task<OAuthResult> RefreshAccessToken(string refreshToken);
+    public Task<OAuthResult> RefreshAccessTokenAsync(string refreshToken);
 
-    public Task<UserPlaylists> GetUserPlaylists(string accessToken);
+    public Task<UserPlaylists> GetUserPlaylistsAsync(string accessToken);
 
-    public Task<ProviderAccess> GetUserData(string accessToken);
+    public Task<ProviderAccess> GetUserDataAsync(string accessToken);
 
-    public Task<SearchQuery> SearchForTracks(string accessToken, string query);
+    public Task<SearchQuery> SearchForTracksAsync(string accessToken, string query);
 
-    public Task AddSongToPlaylist(string accessToken, string trackId, string playlistId);
+    public Task AddSongToPlaylistAsync(string accessToken, string trackId, string playlistId);
     
 }

@@ -3,6 +3,7 @@ using DotNetEnv;
 using Microsoft.AspNetCore.Mvc;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Http;
+using SearchRequest = SpotifyAPI.Web.SearchRequest;
 
 namespace backend.Providers;
 
@@ -52,27 +53,27 @@ public class SpotifyAPI : IProvider
         return new(response.RefreshToken, response.AccessToken, response.CreatedAt.AddSeconds(response.ExpiresIn));
     }
 
-    public Task<OAuthResult> RefreshAccessToken(string refreshToken)
+    public async Task<OAuthResult> RefreshAccessTokenAsync(string refreshToken)
     {
         throw new NotImplementedException();
     }
 
-    public Task<UserPlaylists> GetUserPlaylists(string accessToken)
+    public async Task<UserPlaylists> GetUserPlaylistsAsync(string accessToken)
     {
         throw new NotImplementedException();
     }
 
-    public Task<ProviderAccess> GetUserData(string accessToken)
+    public async Task<ProviderAccess> GetUserDataAsync(string accessToken)
     {
         throw new NotImplementedException();
     }
 
-    public Task<SearchQuery> SearchForTracks(string accessToken, string query)
+    public async Task<SearchQuery> SearchForTracksAsync(string accessToken, string query)
     {
         throw new NotImplementedException();
     }
 
-    public Task AddSongToPlaylist(string accessToken, string trackId, string playlistId)
+    public async Task AddSongToPlaylistAsync(string accessToken, string trackId, string playlistId)
     {
         throw new NotImplementedException();
     }

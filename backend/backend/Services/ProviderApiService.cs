@@ -29,7 +29,7 @@ public class ProviderApiService
         if (!httpContext.Request.Cookies.TryGetValue($"AccessToken_{provider.ToString()}", out var token))
             return new (provider, Array.Empty<Playlist>());
         
-        return await handler.GetUserPlaylists(token);
+        return await handler.GetUserPlaylistsAsync(token);
     }
 
     public async Task<ProviderAccess> GetUserData(Provider provider, string token)
@@ -37,7 +37,7 @@ public class ProviderApiService
         if (!providers.TryGetValue(provider, out var handler))
             return new (Provider.Invalid, "Invalid", "-");
         
-        return await handler.GetUserData(token);
+        return await handler.GetUserDataAsync(token);
     }
 
     public async Task<SearchQuery> SearchForTracks(Provider provider, string token, string search)
@@ -45,6 +45,6 @@ public class ProviderApiService
         if (!providers.TryGetValue(provider, out var handler))
             return new (Provider.Invalid, Array.Empty<Track>());
         
-        return await handler.SearchForTracks(token, search);
+        return await handler.SearchForTracksAsync(token, search);
     }
 }

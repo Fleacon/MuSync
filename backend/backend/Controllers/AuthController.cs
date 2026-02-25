@@ -13,10 +13,11 @@ public class AuthController : ControllerBase
     private readonly AuthService authService;
     private readonly CookieService cookieService;
 
-    public AuthController(SessionService sessionService, AuthService authService)
+    public AuthController(SessionService sessionService, AuthService authService, CookieService cookieService)
     {
         this.sessionService = sessionService;
         this.authService = authService;
+        this.cookieService = cookieService;
     }
 
     [HttpGet("Me")]

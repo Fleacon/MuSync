@@ -49,7 +49,7 @@ public class AuthService
             .First(p => p.Provider == provider)
             .RefreshToken;
         var refreshToken = protector.Unprotect(encryptedRefreshToken);
-        var newToken = await handler.RefreshAccessToken(refreshToken);
+        var newToken = await handler.RefreshAccessTokenAsync(refreshToken);
         return new(newToken.RefreshToken, newToken.AccessToken, newToken.Expiry);
     }
 
@@ -58,7 +58,7 @@ public class AuthService
         if (!providers.TryGetValue(oAuth.Provider, out var handler))
             return null;
         var refreshToken = protector.Unprotect(oAuth.RefreshToken);
-        var newToken = await handler.RefreshAccessToken(refreshToken);
+        var newToken = await handler.RefreshAccessTokenAsync(refreshToken);
         return new(newToken.RefreshToken, newToken.AccessToken, newToken.Expiry);
     }
 
@@ -71,7 +71,7 @@ public class AuthService
         if (token is null)
             return null;
         var refreshToken = protector.Unprotect(token.RefreshToken);
-        var newToken = await handler.RefreshAccessToken(refreshToken);
+        var newToken = await handler.RefreshAccessTokenAsync(refreshToken);
         return new(newToken.RefreshToken, newToken.AccessToken, newToken.Expiry);
     }
 

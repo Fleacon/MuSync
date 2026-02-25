@@ -52,7 +52,7 @@ public class YoutubeAPI : IProvider
         return new (tokenResponse.RefreshToken, tokenResponse.AccessToken, DateTime.Now.AddSeconds((double)tokenResponse.ExpiresInSeconds));
     }
     
-    public async Task<OAuthResult> RefreshAccessToken(string refreshToken)
+    public async Task<OAuthResult> RefreshAccessTokenAsync(string refreshToken)
     {
         var flow = new GoogleAuthorizationCodeFlow(new()
         {
@@ -64,7 +64,7 @@ public class YoutubeAPI : IProvider
         return new (tokenResponse.RefreshToken, tokenResponse.AccessToken, DateTime.Now.AddSeconds((double)tokenResponse.ExpiresInSeconds));
     }
 
-    public async Task<UserPlaylists> GetUserPlaylists(string accessToken)
+    public async Task<UserPlaylists> GetUserPlaylistsAsync(string accessToken)
     {
         var youtubeService = new YouTubeService(new()
         {
@@ -84,7 +84,7 @@ public class YoutubeAPI : IProvider
         return new (Provider.YouTubeMusic, playlists);
     }
 
-    public async Task<ProviderAccess> GetUserData(string accessToken)
+    public async Task<ProviderAccess> GetUserDataAsync(string accessToken)
     {
         var youtubeService = new YouTubeService(new()
         {
@@ -107,11 +107,11 @@ public class YoutubeAPI : IProvider
             thumbnails?.Medium?.Url ??
             thumbnails?.Default__?.Url ??
             "";
-        Console.Write(profilePicture);
+
         return new (Provider, channel.Snippet.Title, profilePicture);
     }
 
-    public async Task<SearchQuery> SearchForTracks(string accessToken, string query)
+    public async Task<SearchQuery> SearchForTracksAsync(string accessToken, string query)
     {
         var youtubeService = new YouTubeService(new()
         {
@@ -148,7 +148,7 @@ public class YoutubeAPI : IProvider
         return new(Provider, searchQuery);
     }
 
-    public async Task AddSongToPlaylist(string accessToken, string trackId, string playlistId)
+    public async Task AddSongToPlaylistAsync(string accessToken, string trackId, string playlistId)
     {
         var youtubeService = new YouTubeService(new()
         {
