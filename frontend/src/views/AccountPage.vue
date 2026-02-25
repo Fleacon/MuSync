@@ -43,7 +43,7 @@ onMounted(async () => {
       const enumValue = providerEnum(localProvider.name)
 
       try {
-        const response = await fetch(`/api/ProviderController/UserData/${enumValue}`, {
+        const response = await fetch(`/api/Provider/UserData/${enumValue}`, {
           credentials: 'include',
         })
 

@@ -1,20 +1,46 @@
 <script setup>
 import { ref, computed } from 'vue'
-import router from '../router'
 import { useAuthStore } from '../stores/auth'
 import Selector from '@/components/Selector.vue'
 
 const auth = useAuthStore()
 
+const searchQuery = ref('')
+
 const providers = ref([
-  { name: 'YouTube Music', icon: 'fa-youtube', connected: false },
-  { name: 'Spotify', icon: 'fa-spotify', connected: false },
-  { name: 'SoundCloud', icon: 'fa-soundcloud', connected: false },
+  {
+    name: 'YouTubeMusic',
+    icon: 'fa-youtube',
+    label: 'YouTube Music',
+    connected: false,
+    selected: false,
+  },
+  { name: 'Spotify', icon: 'fa-spotify', label: 'Spotify', connected: false, selected: false },
 ])
 
 const isLoggedIn = computed(() => auth.isAuthenticated)
-//const providers = computed(() => auth.linkedProviders)
+auth.linkedProviders.forEach((provider) => {
+  const p = providers.value.find((p) => p.name === provider)
+  if (p) p.connected = true
+})
+
 const showSelector = ref(false)
+const searchResults = ref([])
+
+async function searchProviders() {
+  if (!searchQuery.value.trim()) return
+  const selected = providers.value.filter((p) => p.selected)
+  if (!selected.length) return
+
+  const requests = selected.map((p) =>
+    fetch(`/api/Provider/Search/${p.name}?q=${encodeURIComponent(searchQuery.value)}`, {
+      credentials: 'include',
+    }).then((res) => (res.ok ? res.json() : null)),
+  )
+
+  searchResults.value = (await Promise.all(requests)).filter(Boolean)
+  showSelector.value = true
+}
 </script>
 
 <template>
@@ -27,28 +53,33 @@ const showSelector = ref(false)
   </div>
   <div class="interactionContainer" v-if="isLoggedIn">
     <div class="searchbar">
-      <input class="searchBox" type="text" placeholder="Search for Track..." />
-      <input class="addButton" type="submit" value="Add" @click="showSelector = true" />
+      <input
+        class="searchBox"
+        type="text"
+        placeholder="Search for Track..."
+        v-model="searchQuery"
+      />
+      <input class="addButton" type="submit" value="Add" @click="searchProviders" />
     </div>
     <p style="text-align: center">Select Providers</p>
     <div class="providerContainer">
-      <label class="providerSelect" for="ytMusic"
-        ><input type="checkbox" name="ytMusic" id="ytMusic" /><i class="fa-brands fa-youtube"></i
-        >YouTube Music</label
-      >
-      <label class="providerSelect" for="spotify"
-        ><input type="checkbox" name="spotify" id="spotify" /><i class="fa-brands fa-spotify"></i
-        >Spotify</label
-      >
-      <label class="providerSelect" for="soundCloud"
-        ><input type="checkbox" name="soundCloud" id="soundCloud" /><i
-          class="fa-brands fa-soundcloud"
-        ></i
-        >SoundCloud</label
+      <label
+        class="providerSelect"
+        v-for="provider in providers"
+        :key="provider.name"
+        :for="provider.name.toLowerCase()"
+        ><input
+          type="checkbox"
+          :name="provider.name.toLowerCase()"
+          :id="provider.name.toLowerCase()"
+          v-model="provider.selected"
+        /><i class="fa-brands" :class="provider.icon"></i>{{ provider.label }}</label
       >
     </div>
+    <p>{{ providers.map((p) => `${p.label}: ${p.selected}`).join(', ') }}</p>
+    <p>Query: {{ searchQuery }}</p>
     <div class="overlay" v-if="showSelector">
-      <Selector class="selectorBox" @close="showSelector = false" />
+      <Selector class="selectorBox" @close="showSelector = false" :results="searchResults" />
     </div>
   </div>
   <div class="authenticationContainer" v-if="!isLoggedIn">
@@ -122,7 +153,11 @@ input {
 }
 
 .providerSelect > input {
-  display: none;
+  appearance: none;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .providerSelect:has(input:checked) {

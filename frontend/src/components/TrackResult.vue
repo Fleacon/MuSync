@@ -1,22 +1,54 @@
 <script setup>
+const props = defineProps({
+  thumbnailUrl: {
+    type: String,
+    default: '',
+  },
+  title: {
+    type: String,
+    default: '',
+  },
+  uploaderName: {
+    type: String,
+    default: '',
+  },
+  uploaderProfilePictureUrl: {
+    type: String,
+    default: '',
+  },
+  selected: Boolean,
+  trackId: {
+    type: String,
+    default: '',
+  },
+  provider: {
+    type: String,
+    default: '',
+  },
+})
 </script>
 
 <template>
   <div class="trackResult">
-    <img
-      src="https://i.ytimg.com/vi/kPa7bsKwL-c/hq720.jpg?sqp=-oaymwEnCNAFEJQDSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLCP__7GEQfQgkh0AfV4704HTYiVUA"
-      alt=""
-      class="thumbnail"
-    />
+    <div class="imgContainer">
+      <img
+        :src="thumbnailUrl"
+        alt="Track thumbnail"
+        class="thumbnail"
+        :class="provider === 'YouTubeMusic' ? 'youtubeThumbnail' : ''"
+      />
+    </div>
     <div class="trackInfo">
-      <p class="title">Lady Gaga, Bruno Mars - Die With A Smile (Official Music Video)</p>
+      <div class="titleContainer">
+        <p class="title" v-html="title"></p>
+      </div>
       <div class="uploaderInfo">
         <img
-          src="https://yt3.ggpht.com/lM8HHBd5BZtP_-Dh1i3n1Z4teVW8v2KTG-hsS83yXUiK0K6krkk1XNEFbho3uwH-CS-FQpnlHw=s88-c-k-c0x00ffffff-no-rj"
-          alt=""
+          :src="uploaderProfilePictureUrl"
+          alt="Uploader profile picture"
           class="profilePictureUploader"
         />
-        <p class="uploaderName">Lady Gaga</p>
+        <p class="uploaderName">{{ uploaderName }}</p>
       </div>
     </div>
   </div>
@@ -30,32 +62,60 @@
   background-color: var(--accent1-color);
   padding: 10px;
   cursor: pointer;
-  justify-content: space-between;
-  gap: 3%;
+  gap: 1rem;
+  height: 45%;
+  width: 100%;
 }
 
 .title {
   margin: 0;
 }
 
+.imgContainer {
+  display: flex;
+  height: 100%;
+  width: 40%;
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
+}
+
 .thumbnail {
-  width: 50%;
-  min-width: 100px;
+  flex-shrink: 0;
+  height: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+}
+
+.youtubeThumbnail {
+  aspect-ratio: 16/9;
+  width: 100%;
+  height: fit-content;
+  object-fit: cover;
 }
 
 .trackInfo {
-  font-size: 0.8rem;
+  font-size: 1rem;
+  width: 100%;
+  height: 100%;
 }
 
 .uploaderInfo {
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .profilePictureUploader {
-  width: 10%;
+  height: 2rem;
+  aspect-ratio: 1/1;
   border-radius: 50%;
-  min-width: 20px;
+}
+
+.titleContainer {
+  height: 55%;
+  display: flex;
+  align-items: center;
 }
 
 .title {
@@ -71,6 +131,6 @@
 .uploaderName {
   font-weight: 200;
   font-size: 0.7rem;
-  margin-left: 5px;
+  margin-left: 0.5rem;
 }
 </style>

@@ -3,12 +3,16 @@ import { ref } from 'vue'
 import ProviderResult from './ProviderResult.vue'
 
 const emit = defineEmits(['close'])
+const props = defineProps({
+  results: {
+    type: Array,
+    default: () => [],
+  },
+})
 
 function close() {
   emit('close')
 }
-
-const items = ref([1, 2])
 </script>
 
 <template>
@@ -19,8 +23,8 @@ const items = ref([1, 2])
         <i class="fa-solid fa-xmark" style="text-align: center; color: var(--accent2-color)"></i>
       </button>
     </div>
-    <div class="selectorResultsContainer" :class="{ 'many-items': items.length > 3 }">
-      <ProviderResult v-for="j in items" :key="j" />
+    <div class="selectorResultsContainer" :class="{ 'many-items': results.length > 3 }">
+      <ProviderResult v-for="(result, index) in results" :key="index" :result="result" />
     </div>
     <button class="nextBtn">Go to Playlists</button>
   </div>
