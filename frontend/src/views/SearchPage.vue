@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import router from '../router'
 import { useAuthStore } from '../stores/auth'
+import Selector from '@/components/Selector.vue'
 
 const auth = useAuthStore()
 
@@ -13,6 +14,7 @@ const providers = ref([
 
 const isLoggedIn = computed(() => auth.isAuthenticated)
 //const providers = computed(() => auth.linkedProviders)
+const showSelector = ref(false)
 </script>
 
 <template>
@@ -26,7 +28,7 @@ const isLoggedIn = computed(() => auth.isAuthenticated)
   <div class="interactionContainer" v-if="isLoggedIn">
     <div class="searchbar">
       <input class="searchBox" type="text" placeholder="Search for Track..." />
-      <input class="addButton" type="submit" value="Add" />
+      <input class="addButton" type="submit" value="Add" @click="showSelector = true" />
     </div>
     <p style="text-align: center">Select Providers</p>
     <div class="providerContainer">
@@ -44,6 +46,9 @@ const isLoggedIn = computed(() => auth.isAuthenticated)
         ></i
         >SoundCloud</label
       >
+    </div>
+    <div class="overlay" v-if="showSelector">
+      <Selector class="selectorBox" @close="showSelector = false" />
     </div>
   </div>
   <div class="authenticationContainer" v-if="!isLoggedIn">
@@ -122,5 +127,20 @@ input {
 
 .providerSelect:has(input:checked) {
   border: 2px solid var(--accent2-color);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0; /* top:0; right:0; bottom:0; left:0 */
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.selectorBox {
+  border-radius: 12px;
+  padding: 5px;
 }
 </style>

@@ -6,3 +6,7 @@
   --background-linear1-color: var(--primary-color);
   --background-linear2-color: #0b2435;
 }
+
+* {
+  box-sizing: border-box;
+}
