@@ -122,7 +122,7 @@ public class YoutubeAPI : IProvider
         request.Q = query;
         request.MaxResults = 10;
         request.Type = "video";
-        request.TopicId = "10"; // Music
+        request.VideoCategoryId = "10"; // Music
 
         var response = await request.ExecuteAsync();
         var tracks = response.Items;
@@ -134,13 +134,19 @@ public class YoutubeAPI : IProvider
             var uploaderRequest = youtubeService.Channels.List("snippet");
             uploaderRequest.Id = t.Snippet.ChannelId;
             
-            var uploaderResponse = await request.ExecuteAsync();
+            var uploaderResponse = await uploaderRequest.ExecuteAsync();
             
-            var id = t.Id.ToString();
+            var id = t.Id.VideoId;
             var title = t.Snippet.Title;
-            var thumbnailUrl = t.Snippet.Thumbnails.Standard.Url;
+            var thumbnailUrl = t.Snippet.Thumbnails.Standard?.Url
+                               ?? t.Snippet.Thumbnails.High?.Url
+                               ?? t.Snippet.Thumbnails.Medium?.Url
+                               ?? t.Snippet.Thumbnails.Default__?.Url
+                               ?? "";
             var uploaderName = t.Snippet.ChannelTitle;
-            var uploaderImgUrl = uploaderResponse.Items.First().Snippet.Thumbnails.Standard.Url;
+            var uploaderImgUrl = uploaderResponse.Items?.FirstOrDefault()?.Snippet.Thumbnails.Standard?.Url
+                                 ?? uploaderResponse.Items?.FirstOrDefault()?.Snippet.Thumbnails.Default__?.Url
+                                 ?? "";
             
             searchQuery.Add(new (id, title, thumbnailUrl, uploaderName, uploaderImgUrl));
         }

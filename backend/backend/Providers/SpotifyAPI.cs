@@ -102,14 +102,12 @@ public class SpotifyAPI : IProvider
         List<Track> tracks = [];
         foreach (var t in response.Tracks.Items)
         {
-            var album = t.Album;
-
-            var uploaderResult = await client.Artists.Get(album.Artists.First().Id);
-
-            var id = album.Id;
-            var title = album.Name;
-            var thumbnailUrl = album.Images.First().Url;
-            var artistsName = string.Join(", ", album.Artists);
+            var uploaderResult = await client.Artists.Get(t.Artists.First().Id);
+            
+            var id = t.Id;
+            var title = t.Name;
+            var thumbnailUrl = t.Album.Images.First().Url;
+            var artistsName = t.Artists.First().Name;
             var uploaderImgUrl = uploaderResult.Images.First().Url;
             
             tracks.Add(new(id, title, thumbnailUrl, artistsName, uploaderImgUrl));
