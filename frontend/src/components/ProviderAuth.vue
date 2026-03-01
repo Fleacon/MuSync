@@ -37,18 +37,7 @@ function add() {
 async function disconnect() {
   if (!providerEnum.value) return
 
-  await fetch(`/api/ProviderAuth/Disconnect/${providerEnum.value}`, {
-    method: 'POST',
-    credentials: 'include',
-  })
-
-  window.location.reload()
-}
-
-async function refreshToken() {
-  if (!providerEnum.value) return
-
-  await fetch(`/api/ProviderAuth/Refresh/${providerEnum.value}`, {
+  await fetch(`/api/Account/Disconnect/${providerEnum.value}`, {
     method: 'POST',
     credentials: 'include',
   })
@@ -64,24 +53,23 @@ async function refreshToken() {
       <div class="providerText">
         <p class="providerUsername">{{ connected ? username : 'Not connected' }}</p>
         <p class="providerName">{{ provider }}</p>
-        <img
-          :src="profilePictureUrl"
-          alt="Profile Picture"
-          v-if="connected"
-          class="profilePicture"
-          referrerpolicy="no-referrer"
-        />
       </div>
+      <img
+        :src="profilePictureUrl"
+        alt="Profile Picture"
+        v-if="connected"
+        class="profilePicture"
+        referrerpolicy="no-referrer"
+      />
     </div>
     <div class="providerButtons">
-      <button @click="refreshToken">refreshToken</button>
       <button class="removeButton" v-if="connected" @click="disconnect">Remove</button>
       <button class="accent1-color" v-if="!connected" @click="add">Add</button>
     </div>
   </div>
 </template>
 
-<style>
+<style scoped>
 .authContainer {
   display: flex;
   justify-content: space-between;

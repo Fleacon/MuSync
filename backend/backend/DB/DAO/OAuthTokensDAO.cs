@@ -58,6 +58,17 @@ public class OAuthTokensDAO
         return authToken;
     }
 
+    public async Task<bool> DeleteOAuthTokenByUserId(Provider provider, int userId)
+    {
+        await using var conn = db.CreateConnection();
+        await using var cmd =
+            new MySqlCommand("DELETE FROM OAuthTokens WHERE Provider = @provider AND UserId = @userId", conn);
+        cmd.Parameters.AddWithValue("@provider", provider.ToString());
+        cmd.Parameters.AddWithValue("@userId", userId);
+        
+        return await cmd.ExecuteNonQueryAsync() > 0 ;
+    }
+
     private static OAuthToken MapOAuthToken(DbDataReader reader)
     {
         Enum.TryParse<Provider>(

@@ -27,4 +27,9 @@ public class CookieService
             Path = "/"
         });
     }
+
+    public void RemoveAccessToken(HttpResponse httpResponse, Provider provider)
+    {
+        httpResponse.Cookies.Delete($"AccessToken_{provider.ToString()}");
+    } 
 }

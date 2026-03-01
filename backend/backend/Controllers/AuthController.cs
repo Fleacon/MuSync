@@ -12,12 +12,14 @@ public class AuthController : ControllerBase
     private readonly SessionService sessionService;
     private readonly AuthService authService;
     private readonly CookieService cookieService;
+    private readonly AccountService accountService;
 
-    public AuthController(SessionService sessionService, AuthService authService, CookieService cookieService)
+    public AuthController(SessionService sessionService, AuthService authService, CookieService cookieService, AccountService accountService)
     {
         this.sessionService = sessionService;
         this.authService = authService;
         this.cookieService = cookieService;
+        this.accountService = accountService;
     }
 
     [HttpGet("Me")]
@@ -33,7 +35,7 @@ public class AuthController : ControllerBase
         var refreshedSession = await sessionService.RefreshSession(token);
         cookieService.SetSession(Response, token, refreshedSession!.ExpiryDate);
 
-        var providers = await authService.GetLinkedProviders(user.UserId);
+        var providers = await accountService.GetLinkedProviders(user.UserId);
 
         return Ok(new SessionContext(user.Username, providers));
     }

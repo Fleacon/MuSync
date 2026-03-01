@@ -38,7 +38,7 @@ public class AccountController : ControllerBase
         if (user is null)
             return NotFound();
 
-        var providers = await authService.GetLinkedProviders(user.UserId);
+        var providers = await accountService.GetLinkedProviders(user.UserId);
 
         var token = sessionService.GenerateSessionToken();
         var session = await sessionService.GenerateSession(user.UserId, token);
@@ -84,5 +84,24 @@ public class AccountController : ControllerBase
         }
 
         return NotFound();
+    }
+    
+    [HttpPost("Disconnect/{provider}")]
+    public async Task<ActionResult> DisconnectProvider(Provider provider)
+    {
+        if (!Request.Cookies.TryGetValue("Session", out var token))
+            return Unauthorized();
+
+        var user = await sessionService.GetUserBySessionToken(token);
+        if (user is null)
+            return Unauthorized();
+
+        bool wasDeleted = await accountService.RemoveProvider(provider, user.UserId);
+        if (!wasDeleted)
+            return NotFound();
+        
+        cookieService.RemoveAccessToken(Response, provider);
+        
+        return Ok();
     }
 }
