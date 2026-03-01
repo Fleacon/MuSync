@@ -22,7 +22,7 @@
       <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
       <PackageReference Include="Google.Apis.YouTube.v3" Version="1.73.0.4053" />
       <PackageReference Include="MySql.Data" Version="9.6.0" />
-      <PackageReference Include="SpotifyAPI.Web" Version="7.2.1" />
+      <PackageReference Include="SpotifyAPI.Web" Version="7.4.0" />
     </ItemGroup>
 
     <ItemGroup>

@@ -17,7 +17,8 @@ public class SpotifyAPI : IProvider
         Scopes.PlaylistModifyPrivate,
         Scopes.PlaylistModifyPublic,
         Scopes.UserLibraryRead,
-        Scopes.UserLibraryModify
+        Scopes.UserLibraryModify,
+        Scopes.PlaylistReadCollaborative
     };
     
     private readonly string clientId = Env.GetString("SPOTIFY_CLIENTID");
@@ -28,7 +29,8 @@ public class SpotifyAPI : IProvider
     {
         var loginRequest = new LoginRequest(new (redirectUri), clientId, LoginRequest.ResponseType.Code)
         {
-            Scope = scope
+            Scope = scope,
+            ShowDialog = true,
         };
 
         var uri = loginRequest.ToUri();
@@ -50,6 +52,7 @@ public class SpotifyAPI : IProvider
                 new (redirectUri)
             )
         );
+        Console.WriteLine(response.Scope);
         return new(response.RefreshToken, response.AccessToken, response.CreatedAt.AddSeconds(response.ExpiresIn));
     }
 
@@ -64,15 +67,15 @@ public class SpotifyAPI : IProvider
     public async Task<UserPlaylists> GetUserPlaylistsAsync(string accessToken)
     {
         var client = new SpotifyClient(accessToken);
-        var id = client.UserProfile.Current().Result.Id;
-        var response = await client.Playlists.GetUsers(id);
-        
+        var response = await client.Playlists.CurrentUsers();
+
         List<Playlist> playlists = [];
         foreach (var p in response.Items)
         {
-            playlists.Add(new(p.Id, p.Name, p.Images.FirstOrDefault().Url));
+            var thumbUrl = p.Images?.FirstOrDefault()?.Url ?? "";
+            playlists.Add(new(p.Id, p.Name, thumbUrl));
         }
-
+        
         return new(Provider, playlists);
     }
 
@@ -119,7 +122,7 @@ public class SpotifyAPI : IProvider
     public async Task AddSongToPlaylistAsync(string accessToken, string trackId, string playlistId)
     {
         var client = new SpotifyClient(accessToken);
-        
-        await client.Playlists.AddItems(playlistId, new (new List<string> {$"spotify:track:{trackId}"}));
+
+        await client.Playlists.AddPlaylistItems(playlistId, new(new List<string> { $"spotify:track:{trackId}" }));
     }
 }
