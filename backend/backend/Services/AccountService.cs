@@ -6,10 +6,12 @@ namespace backend.Services;
 public class AccountService
 {
     private readonly UsersDAO usersDao;
+    private OAuthTokensDAO oAuthTokensDao;
 
-    public AccountService(UsersDAO usersDao)
+    public AccountService(UsersDAO usersDao, OAuthTokensDAO oAuthTokensDao)
     {
         this.usersDao = usersDao;
+        this.oAuthTokensDao = oAuthTokensDao;
     }
     
     public async Task<User?> ValidateCredentials(string username, string password)
@@ -32,5 +34,16 @@ public class AccountService
 
         var hashedPw = PasswordService.HashPassword(password);
         return await usersDao.CreateUser(new(0, username, hashedPw));
+    }
+    
+    public async Task<IReadOnlyList<Provider>> GetLinkedProviders(int userId)
+    {
+        var tokens = await oAuthTokensDao.GetOAuthTokenByUserId(userId);
+        return tokens.Select(t => t.Provider).Distinct().ToList();
+    }
+
+    public async Task<bool> RemoveProvider(Provider provider, int userId)
+    {
+        return await oAuthTokensDao.DeleteOAuthTokenByUserId(provider, userId);
     }
 }

@@ -80,10 +80,4 @@ public class AuthService
         var refreshToken = protector.Protect(result.RefreshToken);
         await oAuthTokensDao.CreateOAuthToken(new(0, provider, refreshToken, userId));
     }
-
-    public async Task<IReadOnlyList<Provider>> GetLinkedProviders(int userId)
-    {
-        var tokens = await oAuthTokensDao.GetOAuthTokenByUserId(userId);
-        return tokens.Select(t => t.Provider).Distinct().ToList();
-    }
 }
