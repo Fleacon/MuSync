@@ -62,10 +62,32 @@ public class ProviderController : ControllerBase
         }
 
         var q = Request.Query["q"];
-        Console.WriteLine($"Search Start | Query: {q}");
         var query = await apiService.SearchForTracks(provider, token, q);
-        Console.WriteLine("Search Done");
         
         return Ok(query);
+    }
+
+    [HttpPost("AddToPlaylists")]
+    public async Task<IActionResult> AddToPlaylists([FromBody] IReadOnlyList<Selection> selections)
+    {
+        if (!Request.Cookies.TryGetValue("Session", out var sToken))
+            return Unauthorized();
+
+        var tasks = selections.Select(async selection =>
+        {
+            if (!Request.Cookies.TryGetValue($"AccessToken_{selection.Provider}", out var token))
+            {
+                var newToken = await authService.RefreshAccessToken(selection.Provider, sToken);
+                if (newToken is null) return;
+                cookieService.SetAccessToken(Response, selection.Provider, newToken);
+                token = newToken.AccessToken;
+            }
+
+            await apiService.AddToPlaylist(selection.Provider, token, selection.TrackId, selection.PlaylistId);
+        });
+
+        await Task.WhenAll(tasks);
+        Console.WriteLine("Songs now added to Playlist Added");
+        return Ok();
     }
 }

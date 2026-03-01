@@ -47,4 +47,12 @@ public class ProviderApiService
         
         return await handler.SearchForTracksAsync(token, search);
     }
+
+    public async Task AddToPlaylist(Provider provider, string token, string trackId, string playlistId)
+    {
+        if (!providers.TryGetValue(provider, out var handler))
+            return;
+
+        await handler.AddSongToPlaylistAsync(token, trackId, playlistId);
+    }
 }
