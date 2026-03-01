@@ -1,5 +1,9 @@
 <script setup>
 const props = defineProps({
+  provider: {
+    type: String,
+    default: '',
+  },
   thumbnailUrl: {
     type: String,
     default: '',
@@ -8,11 +12,7 @@ const props = defineProps({
     type: String,
     default: '',
   },
-  uploaderName: {
-    type: String,
-    default: '',
-  },
-  uploaderProfilePictureUrl: {
+  playlistId: {
     type: String,
     default: '',
   },
@@ -20,54 +20,40 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  trackId: {
-    type: String,
-    default: '',
-  },
-  provider: {
-    type: String,
-    default: '',
-  },
 })
 
 const emit = defineEmits(['select'])
 
 function handleClick() {
-  emit('select', props.trackId)
+  emit('select', props.playlistId)
 }
 </script>
 
 <template>
-  <div class="trackResult" :class="{ 'trackResult--selected': selected }" @click="handleClick">
+  <div
+    class="playlistResult"
+    :class="{ 'playlistResult--selected': selected }"
+    @click="handleClick"
+  >
     <div class="selectedIndicator" v-if="selected">
       <i class="fa-solid fa-circle-check"></i>
     </div>
     <div class="imgContainer">
       <img
         :src="thumbnailUrl"
-        alt="Track thumbnail"
+        alt="Playlist thumbnail"
         class="thumbnail"
         :class="provider === 'YouTubeMusic' ? 'youtubeThumbnail' : ''"
       />
     </div>
-    <div class="trackInfo">
-      <div class="titleContainer">
-        <p class="title" v-html="title"></p>
-      </div>
-      <div class="uploaderInfo">
-        <img
-          :src="uploaderProfilePictureUrl"
-          alt="Uploader profile picture"
-          class="profilePictureUploader"
-        />
-        <p class="uploaderName">{{ uploaderName }}</p>
-      </div>
+    <div class="playlistinfo">
+      <p class="playlistTitle">{{ title }}</p>
     </div>
   </div>
 </template>
 
 <style scoped>
-.trackResult {
+.playlistResult {
   position: relative;
   display: flex;
   align-items: center;
@@ -86,26 +72,22 @@ function handleClick() {
     background-color 0.15s ease;
 }
 
-.trackResult:hover {
+.playlistResult:hover {
   background-color: color-mix(in srgb, var(--accent1-color) 80%, white);
 }
 
-.trackResult--selected {
+.playlistResult--selected {
   border-color: var(--accent2-color);
   background-color: color-mix(in srgb, var(--accent1-color) 70%, var(--primary-color));
 }
 
-.selectedIndicator {
+.playlistResult .selectedIndicator {
   position: absolute;
   top: 6px;
   right: 8px;
   font-size: 1.1rem;
   color: var(--accent2-color);
   line-height: 1;
-}
-
-.title {
-  margin: 0;
 }
 
 .imgContainer {
@@ -115,6 +97,26 @@ function handleClick() {
   flex-shrink: 0;
   justify-content: center;
   align-items: center;
+}
+
+.playlistinfo {
+  font-size: 1rem;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.playlistTitle {
+  font-weight: bold;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
 }
 
 .thumbnail {
@@ -130,45 +132,5 @@ function handleClick() {
   min-height: 50px;
   max-height: 100%;
   object-fit: cover;
-}
-
-.trackInfo {
-  font-size: 1rem;
-  width: 100%;
-  height: 100%;
-}
-
-.uploaderInfo {
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
-.profilePictureUploader {
-  height: 2rem;
-  aspect-ratio: 1/1;
-  border-radius: 50%;
-}
-
-.titleContainer {
-  height: 55%;
-  display: flex;
-  align-items: center;
-}
-
-.title {
-  font-weight: bold;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.uploaderName {
-  font-weight: 200;
-  font-size: 0.8rem;
-  margin-left: 0.5rem;
 }
 </style>
