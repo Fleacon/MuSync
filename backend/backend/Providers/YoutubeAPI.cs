@@ -78,7 +78,12 @@ public class YoutubeAPI : IProvider
         List<Playlist> playlists = [];
         foreach (var item in response.Items)
         {
-            playlists.Add(new (item.Id, item.Snippet.Title, item.Snippet.Thumbnails.Standard.Url));
+            var thumbnail = item.Snippet.Thumbnails.Standard?.Url
+                            ?? item.Snippet.Thumbnails.High?.Url
+                            ?? item.Snippet.Thumbnails.Medium?.Url
+                            ?? item.Snippet.Thumbnails.Default__?.Url
+                            ?? "";
+            playlists.Add(new (item.Id, item.Snippet.Title, thumbnail));
         }
 
         return new (Provider.YouTubeMusic, playlists);
@@ -150,7 +155,7 @@ public class YoutubeAPI : IProvider
             
             searchQuery.Add(new (id, title, thumbnailUrl, uploaderName, uploaderImgUrl));
         }
-
+        
         return new(Provider, searchQuery);
     }
 
@@ -168,6 +173,7 @@ public class YoutubeAPI : IProvider
                 PlaylistId = playlistId,
                 ResourceId = new ()
                 {
+                    Kind = "youtube#video",
                     VideoId = trackId
                 }
             }
