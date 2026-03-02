@@ -52,6 +52,20 @@ public class UsersDAO
         return null;
     }
 
+    public async Task<User?> GetUserByRememberHash(string hash)
+    {
+        await using var conn = db.CreateConnection();
+        await using var cmd = new MySqlCommand(
+            "SELECT Users.UserId, Username, Password FROM Users " +
+            "JOIN RememberTokens USING(UserId) WHERE TokenHash = @hash AND ExpiryDate > @now", conn);
+        cmd.Parameters.AddWithValue("@hash", hash);
+        cmd.Parameters.AddWithValue("@now", DateTime.Now);
+        await using var reader = await cmd.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+            return MapUser(reader);
+        return null;
+    }
+    
     public async Task<User> CreateUser(User user)
     {
         await using var conn = db.CreateConnection();

@@ -16,6 +16,9 @@ export const useAuthStore = defineStore('auth', {
     async checkAuth() {
       if (this.hasCheckedAuth) return
 
+      await this.fetchAuth()
+    },
+    async fetchAuth() {
       try {
         const res = await fetch('/api/Auth/Me', {
           credentials: 'include',
@@ -35,6 +38,10 @@ export const useAuthStore = defineStore('auth', {
       } finally {
         this.hasCheckedAuth = true
       }
+    },
+    async handleUnauthorized() {
+      this.hasCheckedAuth = false
+      await this.fetchAuth()
     },
     setAuth(user, providers) {
       this.user = user

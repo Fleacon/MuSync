@@ -1,3 +1,3 @@
 ﻿namespace backend.Models;
 
-public record UserAuthData(string Username, string Password);
+public record UserAuthData(string Username, string Password, bool RememberMe);

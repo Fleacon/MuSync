@@ -31,5 +31,22 @@ public class CookieService
     public void RemoveAccessToken(HttpResponse httpResponse, Provider provider)
     {
         httpResponse.Cookies.Delete($"AccessToken_{provider.ToString()}");
-    } 
+    }
+
+    public void SetRemember(HttpResponse httpResponse, string token, DateTime expiryDate)
+    {
+        httpResponse.Cookies.Append("Remember", token, new ()
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
+            Expires = expiryDate,
+            Path = "/"
+        });
+    }
+
+    public void RemoveRemember(HttpResponse httpResponse)
+    {
+        httpResponse.Cookies.Delete("Remember");
+    }
 }

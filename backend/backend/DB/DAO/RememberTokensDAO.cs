@@ -40,6 +40,27 @@ public class RememberTokensDAO
 
         return token;
     }
+
+    public async Task DeleteRememberTokenByHash(string hash)
+    {
+        await using var conn = db.CreateConnection();
+        await using var cmd = new MySqlCommand("DELETE FROM RememberTokens WHERE TokenHash = @hash", conn);
+        cmd.Parameters.AddWithValue("@hash", hash);
+        await cmd.ExecuteNonQueryAsync();
+    }
+    
+    public async Task<RememberToken?>GetRememberTokenByHash(string hash)
+    {
+        await using var conn = db.CreateConnection();
+        await using var cmd = new MySqlCommand("SELECT RememberId, CreationDate, ExpiryDate, TokenHash, UserId FROM RememberTokens WHERE TokenHash = @hash", conn);
+        cmd.Parameters.AddWithValue("@hash", hash);
+        await using var reader = await cmd.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+        {
+            return MapRememberToken(reader);
+        }
+        return null;
+    }
     
     private static RememberToken MapRememberToken(DbDataReader reader)
     {

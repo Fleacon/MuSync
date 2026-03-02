@@ -6,9 +6,11 @@ import { useAuthStore } from '@/stores/auth'
 const newUsername = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
+const newRememberMe = ref(false)
 
 const username = ref('')
 const password = ref('')
+const rememberMe = ref(false)
 
 const error = ref('')
 const success = ref('')
@@ -30,6 +32,7 @@ async function registerUser() {
       body: JSON.stringify({
         username: newUsername.value,
         password: newPassword.value,
+        rememberMe: newRememberMe.value,
       }),
       credentials: 'include',
     })
@@ -61,6 +64,7 @@ async function loginUser() {
       body: JSON.stringify({
         username: username.value,
         password: password.value,
+        rememberMe: rememberMe.value,
       }),
       credentials: 'include',
     })
@@ -84,20 +88,30 @@ async function loginUser() {
 <template>
   <div class="main">
     <div class="container">
-      <h2>Login</h2>
-      <input type="text" name="username" id="username" placeholder="Username" v-model="username" />
+      <h3>Login</h3>
+      <input
+        type="text"
+        name="username"
+        id="username"
+        placeholder="Username"
+        v-model="username"
+        class="inputField"
+      />
       <input
         type="password"
         name="password"
         id="password"
         placeholder="Password"
         v-model="password"
+        class="inputField"
       />
-      <label for="rememberMe"><input type="checkbox" name="rememberMe" /> Remember me</label>
+      <label for="rememberMe" class="checkboxContainer"
+        ><input type="checkbox" name="rememberMe" v-model="rememberMe" /> Remember me</label
+      >
       <input type="button" value="Login" @click="loginUser" />
     </div>
     <div class="container">
-      <h2>Register</h2>
+      <h3>Create Account</h3>
 
       <div v-if="connected === 'connected'" class="connect">✅ Connected</div>
       <div v-if="error" class="error">{{ error }}</div>
@@ -109,6 +123,7 @@ async function loginUser() {
         id="newUsername"
         placeholder="Username"
         v-model="newUsername"
+        class="inputField"
       />
       <input
         type="password"
@@ -116,6 +131,7 @@ async function loginUser() {
         id="newPassword"
         placeholder="Password"
         v-model="newPassword"
+        class="inputField"
       />
       <input
         type="password"
@@ -123,14 +139,17 @@ async function loginUser() {
         id="confirmPassword"
         placeholder="Confirm Password"
         v-model="confirmPassword"
+        class="inputField"
       />
-      <label for="rememberMe"><input type="checkbox" name="rememberMe" /> Remember me</label>
+      <label for="rememberMe" class="checkboxContainer"
+        ><input type="checkbox" name="rememberMe" v-model="newRememberMe" /> Remember me
+      </label>
       <input type="button" value="Register" @click="registerUser" />
     </div>
   </div>
 </template>
 
-<style>
+<style scoped>
 .main {
   display: flex;
   justify-content: center;
@@ -139,14 +158,77 @@ async function loginUser() {
   gap: 5%;
 }
 
+h3 {
+  text-align: center;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+}
+
 .container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
+  gap: 15px;
   padding: 20px;
   background-color: var(--secondary-color);
   border-radius: 18px;
   height: fit-content;
+  width: 25%;
+}
+
+.inputField {
+  padding: 15px;
+  padding-left: 1.2rem;
+  border-radius: 1000px;
+  border: none;
+  background-color: var(--accent1-color);
+  width: 100%;
+  color: var(--accent2-color);
+  font-size: 1rem;
+}
+
+.inputField:focus {
+  outline: 1px solid var(--accent2-color);
+}
+
+.inputField::placeholder {
+  color: #d9d9d9;
+  opacity: 0.5;
+}
+
+input[type='button'] {
+  margin-top: 0.5rem;
+  padding: 15px 25px;
+  border-radius: 1000px;
+  border: none;
+  background-color: var(--accent1-color);
+  color: var(--accent2-color);
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1.2rem;
+  width: fit-content;
+  align-self: center;
+}
+
+input[type='checkbox'] {
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--accent2-color);
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: transparent;
+  margin-left: 1rem;
+}
+
+input[type='checkbox']:checked {
+  background-color: var(--accent2-color);
+}
+
+label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 200;
 }
 </style>

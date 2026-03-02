@@ -43,6 +43,8 @@ builder.Services.AddScoped<SessionService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProviderApiService>();
 builder.Services.AddScoped<CookieService>();
+builder.Services.AddScoped<RememberTokenService>();
+builder.Services.AddScoped<SessionAuthFilter>();
 
 builder.Services.AddControllers(options =>
 {
