@@ -1,4 +1,5 @@
 ﻿using backend.DB.DAO;
+using backend.Filter;
 using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -23,16 +24,13 @@ public class ProviderController : ControllerBase
     [HttpGet("Get/Playlists/{provider}")]
     public async Task<ActionResult<UserPlaylists>> GetUserPlaylists(Provider provider)
     {
-        if (!Request.Cookies.TryGetValue("Session", out var token))
-            return Unauthorized();
-        return await apiService.GetUserPlaylists(provider, HttpContext);
+        return await apiService.GetUserPlaylists(provider, Request);
     }
 
     [HttpGet("UserData/{provider}")]
     public async Task<ActionResult<ProviderAccess>> GetUserData(Provider provider)
     {
-        if (!Request.Cookies.TryGetValue("Session", out var sToken))
-            return Unauthorized();
+        var sToken = HttpContext.GetSessionToken()!;
         if (!Request.Cookies.TryGetValue($"AccessToken_{provider.ToString()}", out var token))
         {
             var newToken = await authService.RefreshAccessToken(provider, sToken);
@@ -48,8 +46,7 @@ public class ProviderController : ControllerBase
     [HttpGet("Search/{provider}")]
     public async Task<ActionResult<SearchQuery>> SearchForTracks(Provider provider)
     {
-        if (!Request.Cookies.TryGetValue("Session", out var sToken))
-            return Unauthorized();
+        var sToken = HttpContext.GetSessionToken()!;
         if (string.IsNullOrWhiteSpace(Request.Query["q"]))
             return NoContent();
         if (!Request.Cookies.TryGetValue($"AccessToken_{provider.ToString()}", out var token))
@@ -70,8 +67,7 @@ public class ProviderController : ControllerBase
     [HttpPost("AddToPlaylists")]
     public async Task<IActionResult> AddToPlaylists([FromBody] IReadOnlyList<Selection> selections)
     {
-        if (!Request.Cookies.TryGetValue("Session", out var sToken))
-            return Unauthorized();
+        var sToken = HttpContext.GetSessionToken();
 
         var tasks = selections.Select(async selection =>
         {
@@ -87,7 +83,6 @@ public class ProviderController : ControllerBase
         });
 
         await Task.WhenAll(tasks);
-        Console.WriteLine("Songs now added to Playlist Added");
         return Ok();
     }
 }

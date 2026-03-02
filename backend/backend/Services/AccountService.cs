@@ -14,16 +14,16 @@ public class AccountService
         this.oAuthTokensDao = oAuthTokensDao;
     }
     
-    public async Task<User?> ValidateCredentials(string username, string password)
+    public async Task<(LoginResult result, User? user)> ValidateCredentials(string username, string password)
     {
         var user = await usersDao.GetUserByUsername(username);
         if (user is null)
-            return null;
+            return (LoginResult.NOTFOUND, null);
 
         if (!PasswordService.VerifyPassword(user.PasswordHash, password))
-            throw new UnauthorizedAccessException();
+            return (LoginResult.UNAUTHORIZED, null);
 
-        return user;
+        return (LoginResult.SUCCESS, user);
     }
     
     public async Task<User?> CreateAccount(string username, string password)

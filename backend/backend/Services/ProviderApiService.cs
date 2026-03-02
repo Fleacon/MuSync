@@ -12,21 +12,12 @@ public class ProviderApiService
         { Provider.YouTubeMusic, new YoutubeAPI()}
     };
 
-    private OAuthTokensDAO oAuthTokensDao;
-    private AuthService authService;
-
-    public ProviderApiService(OAuthTokensDAO authTokensDao, AuthService authService)
-    {
-        oAuthTokensDao = authTokensDao;
-        this.authService = authService;
-    }
-
-    public async Task<UserPlaylists> GetUserPlaylists(Provider provider, HttpContext httpContext)
+    public async Task<UserPlaylists> GetUserPlaylists(Provider provider, HttpRequest request)
     {
         if (!providers.TryGetValue(provider, out var handler))
             return new (Provider.Invalid, Array.Empty<Playlist>());
         
-        if (!httpContext.Request.Cookies.TryGetValue($"AccessToken_{provider.ToString()}", out var token))
+        if (!request.Cookies.TryGetValue($"AccessToken_{provider.ToString()}", out var token))
             return new (provider, Array.Empty<Playlist>());
         
         return await handler.GetUserPlaylistsAsync(token);

@@ -1,4 +1,5 @@
 ﻿using backend.DB.DAO;
+using backend.Filter;
 using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -10,14 +11,12 @@ namespace backend.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly SessionService sessionService;
-    private readonly AuthService authService;
     private readonly CookieService cookieService;
     private readonly AccountService accountService;
 
-    public AuthController(SessionService sessionService, AuthService authService, CookieService cookieService, AccountService accountService)
+    public AuthController(SessionService sessionService, CookieService cookieService, AccountService accountService)
     {
         this.sessionService = sessionService;
-        this.authService = authService;
         this.cookieService = cookieService;
         this.accountService = accountService;
     }
@@ -25,18 +24,8 @@ public class AuthController : ControllerBase
     [HttpGet("Me")]
     public async Task<ActionResult<SessionContext>> GetSessionContext()
     {
-        if (!Request.Cookies.TryGetValue("Session", out var token))
-            return Unauthorized();
-
-        var user = await sessionService.GetUserBySessionToken(token);
-        if (user is null)
-            return Unauthorized();
-        
-        var refreshedSession = await sessionService.RefreshSession(token);
-        cookieService.SetSession(Response, token, refreshedSession!.ExpiryDate);
-
+        var user = HttpContext.GetCurrentUser()!;
         var providers = await accountService.GetLinkedProviders(user.UserId);
-
         return Ok(new SessionContext(user.Username, providers));
     }
 }

@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using backend.DB;
 using backend.DB.DAO;
+using backend.Filter;
 using backend.Services;
 using DotNetEnv;
 using Microsoft.AspNetCore.DataProtection;
@@ -42,6 +43,11 @@ builder.Services.AddScoped<SessionService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProviderApiService>();
 builder.Services.AddScoped<CookieService>();
+
+builder.Services.AddControllers(options =>
+{
+    options.Filters.AddService<SessionAuthFilter>();
+});
 
 builder.Services.AddDataProtection().PersistKeysToFileSystem(new("/sec/keys/"));
 

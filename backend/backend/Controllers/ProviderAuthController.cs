@@ -11,39 +11,25 @@ namespace backend.Controllers;
 [Route("api/ProviderAuth")]
 public class ProviderAuthController : ControllerBase
 {
-    private readonly SessionService sessionService;
     private readonly AuthService authService;
     private readonly CookieService cookieService;
 
-    public ProviderAuthController(SessionService sessionService, AuthService authService, CookieService cookieService)
+    public ProviderAuthController(AuthService authService, CookieService cookieService)
     {
-        this.sessionService = sessionService;
         this.authService = authService;
         this.cookieService = cookieService;
     }
 
     [HttpGet("Login/{provider}")]
-    public async Task<ActionResult> Login(Provider provider)
+    public ActionResult Login(Provider provider)
     {
-        if (!Request.Cookies.TryGetValue("Session", out var token))
-            return Unauthorized();
-
-        var user = await sessionService.GetUserBySessionToken(token);
-        if (user is null)
-            return Unauthorized();
-
         return authService.RequestAuth(provider);
     }
 
     [HttpGet("CallBack/{provider}")]
     public async Task<ActionResult> CallBack(Provider provider)
     {
-        if (!Request.Cookies.TryGetValue("Session", out var token))
-            return Unauthorized();
-
-        var user = await sessionService.GetUserBySessionToken(token);
-        if (user is null)
-            return Unauthorized();
+        var user = HttpContext.GetCurrentUser();
 
         var result = await authService.HandleCallback(provider, HttpContext);
         if (result is null)
@@ -58,12 +44,7 @@ public class ProviderAuthController : ControllerBase
     [HttpGet("Refresh/{provider}")]
     public async Task<ActionResult> RefreshAccessToken(Provider provider)
     {
-        if (!Request.Cookies.TryGetValue("Session", out var token))
-            return Unauthorized();
-
-        var user = await sessionService.GetUserBySessionToken(token);
-        if (user is null)
-            return Unauthorized();
+        var user = HttpContext.GetCurrentUser();
 
         var newToken = await authService.RefreshAccessToken(provider, user);
         if (newToken is null)

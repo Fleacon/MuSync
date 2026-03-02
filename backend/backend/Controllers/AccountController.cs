@@ -1,4 +1,5 @@
 ﻿using backend.DB.DAO;
+using backend.Filter;
 using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -25,21 +26,14 @@ public class AccountController : ControllerBase
     [HttpPost("Login")]
     public async Task<ActionResult<SessionContext>> TryLogin([FromBody] UserAuthData userAuthData)
     {
-        User? user;
-        try
-        {
-            user = await accountService.ValidateCredentials(userAuthData.Username, userAuthData.Password);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Unauthorized();
-        }
+        var (result, user) = await accountService.ValidateCredentials(userAuthData.Username, userAuthData.Password);
 
-        if (user is null)
+        if (result == LoginResult.NOTFOUND)
             return NotFound();
-
+        if (result == LoginResult.UNAUTHORIZED)
+            return Unauthorized();
+        
         var providers = await accountService.GetLinkedProviders(user.UserId);
-
         var token = sessionService.GenerateSessionToken();
         var session = await sessionService.GenerateSession(user.UserId, token);
         cookieService.SetSession(Response, token, session.ExpiryDate);
