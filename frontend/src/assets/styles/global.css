@@ -10,3 +10,39 @@
 * {
   box-sizing: border-box;
 }
+
+html {
+  height: 100vh;
+  width: 100vw;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  font-family: Inter, Arial, sans-serif;
+  background-image: linear-gradient(
+    var(--background-linear1-color),
+    var(--background-linear2-color)
+  );
+  color: var(--accent2-color);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+input[type='button']:hover:not(:disabled),
+input[type='submit']:hover:not(:disabled),
+button:hover:not(:disabled) {
+  filter: brightness(1.15);
+  cursor: pointer;
+}
+
+.providerSelect:hover:not(:has(input:disabled)) {
+  filter: brightness(1.15);
+}
+
+input[type='button'],
+input[type='submit'],
+button {
+  transition: filter 0.2s ease;
+}

@@ -73,7 +73,8 @@ function handleClick() {
 }
 
 .playlistResult:hover {
-  background-color: color-mix(in srgb, var(--accent1-color) 80%, white);
+  filter: brightness(1.15);
+  background-color: var(--accent1-color);
 }
 
 .playlistResult--selected {

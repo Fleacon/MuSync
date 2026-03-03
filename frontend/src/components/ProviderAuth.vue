@@ -19,6 +19,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  loading: {
+    type: Boolean,
+    default: true,
+  },
 })
 
 const providerEnumMap = {
@@ -51,20 +55,23 @@ async function disconnect() {
     <div class="providerInfo">
       <i :class="iconClass + ' fa-brands'"></i>
       <div class="providerText">
-        <p class="providerUsername">{{ connected ? username : 'Not connected' }}</p>
+        <span v-if="loading">Loading...</span>
+        <span v-else>{{ connected ? username : 'Not connected' }}</span>
         <p class="providerName">{{ provider }}</p>
       </div>
       <img
         :src="profilePictureUrl"
         alt="Profile Picture"
-        v-if="connected"
+        v-if="connected && !loading"
         class="profilePicture"
         referrerpolicy="no-referrer"
       />
     </div>
     <div class="providerButtons">
-      <button class="removeButton" v-if="connected" @click="disconnect">Remove</button>
-      <button class="accent1-color" v-if="!connected" @click="add">Add</button>
+      <template v-if="!loading">
+        <button class="removeButton" v-if="connected" @click="disconnect">Remove</button>
+        <button class="addButton" v-if="!connected" @click="add">Add</button>
+      </template>
     </div>
   </div>
 </template>
@@ -76,7 +83,8 @@ async function disconnect() {
   align-items: center;
   background-color: var(--secondary-color);
   border-radius: 10px;
-  padding: 0px 20px;
+  padding: 0.5rem 1rem;
+  min-width: 470px;
 }
 
 .providerInfo {
@@ -105,8 +113,7 @@ async function disconnect() {
   border: none;
   border-radius: 10000px;
   cursor: pointer;
-  background-color: var(--accent1-color);
-  color: var(--accent2-color);
+  font-size: 1rem;
 }
 
 .removeButton {
@@ -129,5 +136,25 @@ async function disconnect() {
   width: 50px;
   height: 50px;
   border-radius: 50%;
+}
+
+@media only screen and (orientation: portrait) {
+  .authContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: fit-content;
+    padding: 0.5rem 0.5rem;
+  }
+  .providerInfo {
+    padding: 0.5rem 1rem;
+    width: 100%;
+  }
+  .profilePicture {
+    margin-left: auto;
+  }
+  .providerButtons {
+    margin-bottom: 0.2rem;
+  }
 }
 </style>

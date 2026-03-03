@@ -41,6 +41,7 @@ onMounted(async () => {
   await Promise.all(
     providers.value.map(async (localProvider) => {
       const enumValue = providerEnum(localProvider.name)
+      localProvider.loading = true // <-- add this
 
       try {
         const response = await fetch(`/api/Provider/UserData/${enumValue}`, {
@@ -50,7 +51,6 @@ onMounted(async () => {
         if (!response.ok) return
 
         const data = await response.json()
-
         if (!data || data.provider === 'Invalid') return
 
         localProvider.connected = true
@@ -58,6 +58,8 @@ onMounted(async () => {
         localProvider.profilePictureUrl = data.profilePictureUrl
       } catch (err) {
         console.error(`Failed loading ${localProvider.name}`, err)
+      } finally {
+        localProvider.loading = false // <-- add this
       }
     }),
   )
@@ -65,26 +67,44 @@ onMounted(async () => {
 </script>
 
 <template>
-  <button @click="logout">Logout</button>
   <div class="accountPage">
-    <ProviderAuth
-      v-for="value in providers"
-      :key="value.name"
-      :provider="value.name"
-      :iconClass="value.icon"
-      :connected="value.connected"
-      :username="value.username"
-      :profilePictureUrl="value.profilePictureUrl"
-    />
+    <div class="providerList">
+      <ProviderAuth
+        v-for="value in providers"
+        :key="value.name"
+        :provider="value.name"
+        :iconClass="value.icon"
+        :connected="value.connected"
+        :username="value.username"
+        :profilePictureUrl="value.profilePictureUrl"
+        :loading="value.loading"
+      />
+    </div>
+    <div class="accountOptions">
+      <button @click="logout">Logout</button>
+      <button>Delete Account</button>
+    </div>
   </div>
 </template>
 
-<style>
+<style scoped>
 .accountPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin: auto;
+  gap: 1rem;
+}
+
+.providerList {
   display: flex;
   flex-direction: column;
   gap: 20px;
   width: 80%;
-  margin: auto;
+}
+
+h3 {
+  margin: 0.5rem 0;
 }
 </style>

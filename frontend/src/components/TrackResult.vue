@@ -82,12 +82,13 @@ function handleClick() {
   border: 2px solid transparent;
   border-radius: 8px;
   transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease;
+    border-color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .trackResult:hover {
-  background-color: color-mix(in srgb, var(--accent1-color) 80%, white);
+  filter: brightness(1.15);
+  background-color: var(--accent1-color); /* remove the color-mix */
 }
 
 .trackResult--selected {

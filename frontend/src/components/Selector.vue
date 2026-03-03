@@ -1,7 +1,10 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import ProviderResult from './ProviderResult.vue'
 import ProviderPlaylists from './Providerplaylists.vue'
+import { useNotificationStore } from '../stores/notificationStore.js'
+
+const notification = useNotificationStore()
 
 const emit = defineEmits(['close'])
 
@@ -24,6 +27,13 @@ const playlistSelections = ref({})
 // Playlist data fetched per provider: [{ provider, playlists: [...] }]
 const playlistResults = ref([])
 const loadingPlaylists = ref(false)
+
+function handleKeydown(e) {
+  if (e.key === 'Escape') close()
+}
+
+onMounted(() => window.addEventListener('keydown', handleKeydown))
+onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
 
 // Providers that actually have a track selected
 const providersWithTrack = computed(() =>
@@ -87,20 +97,29 @@ function close() {
   emit('close')
 }
 
-function confirm() {
+async function confirm() {
   // Build final selections: [{ provider, trackId, playlistId }]
   const selections = providersWithTrack.value.map((provider) => ({
     provider,
     trackId: trackSelections.value[provider],
     playlistId: playlistSelections.value[provider],
   }))
-  console.log('Confirmed selections:', selections)
-  fetch('/api/Provider/AddToPlaylists', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(selections),
-  })
+
+  try {
+    const res = await fetch('/api/Provider/AddToPlaylists', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(selections),
+    })
+    if (res.ok) {
+      notification.show('Success!', 'Track added to playlist.')
+    } else {
+      notification.show('Failed', 'Something went wrong.', false)
+    }
+  } catch {
+    notification.show('Failed', 'Network error.', false)
+  }
   emit('close')
 }
 </script>
@@ -216,8 +235,9 @@ function confirm() {
 }
 
 .nextBtn {
-  width: 15%;
-  padding: 10px;
+  width: 4rem;
+  min-width: fit-content;
+  padding: 0 2rem;
   border-radius: 1000px;
   border: none;
   background-color: var(--accent1-color);
@@ -228,10 +248,24 @@ function confirm() {
   font-weight: bold;
   cursor: pointer;
   transition: opacity 0.15s ease;
+  transition:
+    filter 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .nextBtn--disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.closeBtn,
+.backBtn {
+  transition: filter 0.2s ease;
+}
+
+@media only screen and (orientation: portrait) {
+  .selectorResultsContainer {
+    justify-content: flex-start;
+  }
 }
 </style>

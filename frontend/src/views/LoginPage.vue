@@ -2,6 +2,9 @@
 import { ref } from 'vue'
 import router from '../router'
 import { useAuthStore } from '@/stores/auth'
+import { useNotificationStore } from '@/stores/notificationStore.js'
+
+const notification = useNotificationStore()
 
 const newUsername = ref('')
 const newPassword = ref('')
@@ -12,17 +15,14 @@ const username = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 
-const error = ref('')
-const success = ref('')
-const connected = ref('dunno')
+const processing = ref(false)
 
 const authStore = useAuthStore()
 
 async function registerUser() {
-  error.value = ''
-  success.value = ''
+  processing.value = true
   if (newPassword.value !== confirmPassword.value) {
-    alert('Passwords do not match!')
+    notification.show('Error', 'Passwords do not match.', false)
     return
   }
   try {
@@ -37,26 +37,23 @@ async function registerUser() {
       credentials: 'include',
     })
     const data = await response.json()
-    connected.value = 'yuh uh'
     if (response.ok) {
-      success.value = 'Registration successful!'
       newUsername.value = newPassword.value = confirmPassword.value = ''
       authStore.setAuth(data.username, data.providers)
+      notification.show('Success', 'Account created successfully!')
       router.push('/account')
     } else {
-      const errorData = await response.json()
-      error.value = errorData.message || `Server error: ${response.status}`
+      notification.show('Error', 'Registration failed: User already exists or invalid data', false)
     }
   } catch (err) {
-    connected.value = 'disconnected'
-    error.value = 'Network error. Is server running?'
     console.error(err)
+    notification.show('Error', 'An error occurred during registration', false)
   }
+  processing.value = false
 }
 
 async function loginUser() {
-  error.value = ''
-  success.value = ''
+  processing.value = true
   try {
     const response = await fetch('/api/Account/Login', {
       method: 'POST',
@@ -70,23 +67,31 @@ async function loginUser() {
     })
     if (response.ok) {
       const data = await response.json()
-      success.value = 'Login successful!'
       username.value = password.value = ''
       authStore.setAuth(data.username, data.providers)
+      notification.show('Success', 'Logged in successfully!')
       router.push('/')
     } else {
-      const errorData = await response.json()
-      error.value = errorData.message || `Server error: ${response.status}`
+      notification.show('Error', 'Login failed: Invalid username or password', false)
     }
   } catch (err) {
-    error.value = 'Network error. Is server running?'
     console.error(err)
+    notification.show('Error', 'An error occurred during login', false)
+  }
+  processing.value = false
+}
+
+function handleEnter() {
+  if (username.value || password.value) {
+    loginUser()
+  } else if (newUsername.value || newPassword.value || confirmPassword.value) {
+    registerUser()
   }
 }
 </script>
 
 <template>
-  <div class="main">
+  <div class="main" @keydown.enter="handleEnter">
     <div class="container">
       <h3>Login</h3>
       <input
@@ -106,17 +111,12 @@ async function loginUser() {
         class="inputField"
       />
       <label for="rememberMe" class="checkboxContainer"
-        ><input type="checkbox" name="rememberMe" v-model="rememberMe" /> Remember me</label
+        ><input type="checkbox" name="rememberMe" v-model="rememberMe" />Remember me</label
       >
-      <input type="button" value="Login" @click="loginUser" />
+      <input type="button" value="Login" @click="loginUser" :disabled="processing" />
     </div>
     <div class="container">
       <h3>Create Account</h3>
-
-      <div v-if="connected === 'connected'" class="connect">✅ Connected</div>
-      <div v-if="error" class="error">{{ error }}</div>
-      <div v-if="success" class="success">{{ success }}</div>
-
       <input
         type="text"
         name="newUsername"
@@ -144,7 +144,7 @@ async function loginUser() {
       <label for="rememberMe" class="checkboxContainer"
         ><input type="checkbox" name="rememberMe" v-model="newRememberMe" /> Remember me
       </label>
-      <input type="button" value="Register" @click="registerUser" />
+      <input type="button" value="Register" @click="registerUser" :disabled="processing" />
     </div>
   </div>
 </template>
@@ -155,7 +155,8 @@ async function loginUser() {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  gap: 5%;
+  column-gap: 5%;
+  row-gap: 2rem;
 }
 
 h3 {
@@ -168,12 +169,13 @@ h3 {
 .container {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 1rem;
   padding: 20px;
   background-color: var(--secondary-color);
   border-radius: 18px;
   height: fit-content;
   width: 25%;
+  min-width: fit-content;
 }
 
 .inputField {
@@ -181,19 +183,9 @@ h3 {
   padding-left: 1.2rem;
   border-radius: 1000px;
   border: none;
-  background-color: var(--accent1-color);
   width: 100%;
-  color: var(--accent2-color);
   font-size: 1rem;
-}
-
-.inputField:focus {
-  outline: 1px solid var(--accent2-color);
-}
-
-.inputField::placeholder {
-  color: #d9d9d9;
-  opacity: 0.5;
+  min-width: 150px;
 }
 
 input[type='button'] {
@@ -212,8 +204,9 @@ input[type='button'] {
 
 input[type='checkbox'] {
   appearance: none;
-  width: 24px;
-  height: 24px;
+  width: 1.5rem;
+  height: 1.5rem;
+  aspect-ratio: 1/1;
   border: 1px solid var(--accent2-color);
   border-radius: 6px;
   cursor: pointer;
@@ -230,5 +223,16 @@ label {
   align-items: center;
   gap: 8px;
   font-weight: 200;
+}
+
+input[type='button']:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.errorMessage {
+  color: red;
+  font-weight: bold;
+  margin: 0;
 }
 </style>
