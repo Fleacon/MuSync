@@ -9,7 +9,6 @@ const providerIcons = {
 }
 
 const props = defineProps({
-  // { provider: 'Spotify', playlists: [{ id, title, thumbnailUrl }] }
   result: {
     type: Object,
     default: () => ({}),

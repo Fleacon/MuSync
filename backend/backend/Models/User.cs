@@ -1,6 +1,4 @@
-﻿using Org.BouncyCastle.Bcpg;
-
-namespace backend.Models;
+﻿namespace backend.Models;
 
 public class User(int userId, string username, string passwordHash)
 {

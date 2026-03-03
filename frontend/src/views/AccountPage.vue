@@ -15,11 +15,11 @@ async function logout() {
     credentials: 'include',
   })
   if (response.ok) {
-    console.log('Logged out successfully')
+    notification.show('Success', 'Logged out successfully!')
     authStore.clearAuth()
     router.push('/')
   } else {
-    console.error('Logout failed:', response.status)
+    notification.show('Error', 'Logout failed. Please try again.', false)
   }
 }
 

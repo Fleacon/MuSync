@@ -28,7 +28,6 @@ public class AccountController : ControllerBase
     public async Task<ActionResult<SessionContext>> TryLogin([FromBody] UserAuthData userAuthData)
     {
         var (result, user) = await accountService.ValidateCredentials(userAuthData.Username, userAuthData.Password);
-        Console.WriteLine($"Connects: {user.Username}");
         if (result == LoginResult.NOTFOUND)
             return NotFound();
         if (result == LoginResult.UNAUTHORIZED)

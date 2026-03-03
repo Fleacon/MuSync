@@ -52,7 +52,6 @@ public class SpotifyAPI : IProvider
                 new (redirectUri)
             )
         );
-        Console.WriteLine(response.Scope);
         return new(response.RefreshToken, response.AccessToken, response.CreatedAt.AddSeconds(response.ExpiresIn));
     }
 

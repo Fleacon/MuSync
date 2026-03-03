@@ -46,7 +46,6 @@ async function registerUser() {
       notification.show('Error', 'Registration failed: User already exists or invalid data', false)
     }
   } catch (err) {
-    console.error(err)
     notification.show('Error', 'An error occurred during registration', false)
   }
   processing.value = false

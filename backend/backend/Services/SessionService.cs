@@ -34,12 +34,6 @@ public class SessionService
         return Convert.ToBase64String(bytes);
     }
 
-    public bool VerifySessionToken(string hashedToken, string providedToken)
-    {
-        string hash = HashSessionToken(providedToken);
-        return hashedToken == hash;
-    }
-
     public async Task<bool> DeleteSession(string token)
     {
         var hashedToken = HashSessionToken(token);

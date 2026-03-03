@@ -15,16 +15,9 @@ const props = defineProps({
   },
 })
 
-// step: 'tracks' | 'playlists'
 const step = ref('tracks')
-
-// Map of provider -> selected trackId (null means none selected for that provider)
 const trackSelections = ref({})
-
-// Map of provider -> selected playlistId
 const playlistSelections = ref({})
-
-// Playlist data fetched per provider: [{ provider, playlists: [...] }]
 const playlistResults = ref([])
 const loadingPlaylists = ref(false)
 
@@ -35,7 +28,6 @@ function handleKeydown(e) {
 onMounted(() => window.addEventListener('keydown', handleKeydown))
 onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
 
-// Providers that actually have a track selected
 const providersWithTrack = computed(() =>
   Object.entries(trackSelections.value)
     .filter(([, trackId]) => trackId !== null)
@@ -43,8 +35,6 @@ const providersWithTrack = computed(() =>
 )
 
 const canGoNext = computed(() => providersWithTrack.value.length > 0)
-
-// True if at least one playlist is selected per provider that has a track
 const canConfirm = computed(() =>
   providersWithTrack.value.every((provider) => playlistSelections.value[provider] != null),
 )
@@ -62,10 +52,6 @@ async function goToPlaylists() {
 
   loadingPlaylists.value = true
   playlistResults.value = []
-
-  console.log('trackSelections:', JSON.stringify(trackSelections.value))
-  console.log('providersWithTrack:', providersWithTrack.value)
-
   const requests = providersWithTrack.value.map(async (provider) => {
     try {
       const res = await fetch(`/api/Provider/Get/Playlists/${provider}`, {
@@ -75,8 +61,7 @@ async function goToPlaylists() {
       const data = await res.json()
       return { provider: data.provider, playlists: data.playlists }
     } catch (e) {
-      console.error(e)
-      failedProviders.value.push(provider) // surface this in the UI
+      failedProviders.value.push(provider)
       return null
     }
   })
@@ -98,7 +83,6 @@ function close() {
 }
 
 async function confirm() {
-  // Build final selections: [{ provider, trackId, playlistId }]
   const selections = providersWithTrack.value.map((provider) => ({
     provider,
     trackId: trackSelections.value[provider],
