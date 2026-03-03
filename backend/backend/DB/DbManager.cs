@@ -14,8 +14,20 @@ public class DbManager
 
     public MySqlConnection CreateConnection()
     {
-        var conn = new MySqlConnection(connString);
-        conn.Open();
-        return conn;
+        try
+        {
+            var conn = new MySqlConnection(connString);
+            conn.Open();
+            return conn;
+        }
+        catch (MySqlException ex)
+        {
+            throw new DatabaseUnavailableException("Could not connect to database.", ex);
+        }
     }
+}
+
+public class DatabaseUnavailableException : Exception
+{
+    public DatabaseUnavailableException(string message, Exception inner) : base(message, inner) { }
 }

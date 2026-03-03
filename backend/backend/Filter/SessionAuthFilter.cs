@@ -1,4 +1,5 @@
-﻿using backend.Services;
+﻿using backend.DB;
+using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -28,28 +29,40 @@ public class SessionAuthFilter : IAsyncActionFilter
             await next();
             return;
         }
-        if (!context.HttpContext.Request.Cookies.TryGetValue("Session", out var token))
+
+        try
         {
-            if (!await TryResumeFromRememberToken(context.HttpContext))
+            if (!context.HttpContext.Request.Cookies.TryGetValue("Session", out var token))
             {
-                context.Result = new UnauthorizedResult();
-                return;
+                if (!await TryResumeFromRememberToken(context.HttpContext))
+                {
+                    context.Result = new UnauthorizedResult();
+                    return;
+                }
+            }
+            else
+            {
+                var user = await sessionService.GetUserBySessionToken(token);
+                if (user is null)
+                {
+                    context.Result = new UnauthorizedResult();
+                    return;
+                }
+
+                var refreshedSession = await sessionService.RefreshSession(token);
+                cookieService.SetSession(context.HttpContext.Response, token, refreshedSession!.ExpiryDate);
+
+                context.HttpContext.Items["User"] = user;
+                context.HttpContext.Items["SessionToken"] = token;
             }
         }
-        else
+        catch (DatabaseUnavailableException)
         {
-            var user = await sessionService.GetUserBySessionToken(token);
-            if (user is null)
+            context.Result = new ObjectResult("Service temporarily unavailable. Please try again later.")
             {
-                context.Result = new UnauthorizedResult();
-                return;
-            }
-
-            var refreshedSession = await sessionService.RefreshSession(token);
-            cookieService.SetSession(context.HttpContext.Response, token, refreshedSession!.ExpiryDate);
-
-            context.HttpContext.Items["User"] = user;
-            context.HttpContext.Items["SessionToken"] = token;
+                StatusCode = StatusCodes.Status503ServiceUnavailable
+            };
+            return;
         }
 
         await next();
