@@ -124,6 +124,7 @@ function handleClick() {
   height: 100%;
   min-height: 100px;
   object-fit: cover;
+  aspect-ratio: 1/1;
 }
 
 .youtubeThumbnail {

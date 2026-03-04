@@ -102,9 +102,13 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
           :disabled="searching"
         /><i class="fa-brands" :class="provider.icon"></i>{{ provider.label }}</label
       >
-      <span class="providerSelect" @click="$router.push('/account')"
-        ><i class="fa-solid fa-plus"></i>Add</span
+      <span
+        class="providerSelect"
+        @click="!searching && $router.push('/account')"
+        :class="{ 'providerSelect--disabled': searching }"
       >
+        <i class="fa-solid fa-plus"></i>Add
+      </span>
     </div>
     <div class="overlay" v-if="showSelector">
       <Selector class="selectorBox" @close="showSelector = false" :results="searchResults" />
@@ -218,6 +222,12 @@ h1 {
   transition:
     border-color 0.2s ease,
     background-color 0.2s ease;
+}
+
+.providerSelect--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 input {
