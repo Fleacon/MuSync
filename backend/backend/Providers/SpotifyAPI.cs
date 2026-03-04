@@ -25,7 +25,7 @@ public class SpotifyAPI : IProvider
     private readonly string clientSecret = Env.GetString("SPOTIFY_CLIENTSECRET");
     private readonly string redirectUri = Env.GetString("SPOTIFY_REDIRECTURI");
     
-    public ActionResult AuthRequest()
+    public ActionResult AuthRequest(HttpContext httpContext)
     {
         var loginRequest = new LoginRequest(new (redirectUri), clientId, LoginRequest.ResponseType.Code)
         {
@@ -108,9 +108,9 @@ public class SpotifyAPI : IProvider
             
             var id = t.Id;
             var title = t.Name;
-            var thumbnailUrl = t.Album.Images.First().Url;
-            var artistsName = t.Artists.First().Name;
-            var uploaderImgUrl = uploaderResult.Images.First().Url;
+            var thumbnailUrl = t.Album.Images.FirstOrDefault()?.Url ?? "";
+            var artistsName = t.Artists.FirstOrDefault()?.Name ?? "";
+            var uploaderImgUrl = uploaderResult.Images.FirstOrDefault()?.Url ?? "";
             
             tracks.Add(new(id, title, thumbnailUrl, artistsName, uploaderImgUrl));
         }

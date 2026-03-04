@@ -23,7 +23,7 @@ public class ProviderAuthController : ControllerBase
     [HttpGet("Login/{provider}")]
     public ActionResult Login(Provider provider)
     {
-        return authService.RequestAuth(provider);
+        return authService.RequestAuth(provider, HttpContext);
     }
 
     [HttpGet("CallBack/{provider}")]
@@ -35,7 +35,7 @@ public class ProviderAuthController : ControllerBase
         if (result is null)
             return BadRequest();
 
-        await authService.CreateOAuthToken(provider, result, user.UserId);
+        await authService.CreateOAuthToken(provider, result, user!.UserId);
         cookieService.SetAccessToken(Response, provider, result);
 
         return Redirect("https://127.0.0.1:5173/account");

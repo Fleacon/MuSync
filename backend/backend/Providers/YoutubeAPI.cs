@@ -24,7 +24,7 @@ public class YoutubeAPI : IProvider
         "https://www.googleapis.com/auth/youtube.force-ssl"
     };
     
-    public ActionResult AuthRequest()
+    public ActionResult AuthRequest(HttpContext httpContext)
     {
         var flow = new GoogleAuthorizationCodeFlow(new()
         {

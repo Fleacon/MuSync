@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using backend.DB;
 using backend.DB.DAO;
 using backend.Filter;
+using backend.Providers;
 using backend.Services;
 using DotNetEnv;
 using Microsoft.AspNetCore.DataProtection;
@@ -45,6 +46,10 @@ builder.Services.AddScoped<ProviderApiService>();
 builder.Services.AddScoped<CookieService>();
 builder.Services.AddScoped<RememberTokenService>();
 builder.Services.AddScoped<SessionAuthFilter>();
+
+builder.Services.AddScoped<ProviderRegistry>();
+builder.Services.AddScoped<SoundCloudAPI>();
+builder.Services.AddHttpClient();
 
 builder.Services.AddControllers(options =>
 {

@@ -4,5 +4,6 @@ public enum Provider
 {
     Invalid,
     YouTubeMusic,
-    Spotify
+    Spotify,
+    SoundCloud
 }

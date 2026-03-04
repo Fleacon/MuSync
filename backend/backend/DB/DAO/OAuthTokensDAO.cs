@@ -66,7 +66,18 @@ public class OAuthTokensDAO
         cmd.Parameters.AddWithValue("@provider", provider.ToString());
         cmd.Parameters.AddWithValue("@userId", userId);
         
-        return await cmd.ExecuteNonQueryAsync() > 0 ;
+        return await cmd.ExecuteNonQueryAsync() > 0;
+    }
+
+    public async Task<bool> UpdateRefreshTokenById(OAuthToken previousOAuthToken, string refreshToken)
+    {
+        await using var conn = db.CreateConnection();
+        await using var cmd =
+            new MySqlCommand("UPDATE OAuthTokens SET RefreshToken = @refreshToken WHERE OAuthId = @oAuthId", conn);
+        cmd.Parameters.AddWithValue("@refreshToken", refreshToken);
+        cmd.Parameters.AddWithValue("@oAuthId", previousOAuthToken.OAuthId);
+
+        return await cmd.ExecuteNonQueryAsync() > 0;
     }
 
     private static OAuthToken MapOAuthToken(DbDataReader reader)
