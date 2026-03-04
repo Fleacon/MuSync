@@ -17,20 +17,24 @@ const props = defineProps({
 
 const emit = defineEmits(['playlist-selected'])
 
-const selectedPlaylistId = ref(null)
+const selectedPlaylistIds = ref(new Set()) // <-- was a single ref, now a Set
 
 const providerMeta = computed(
   () => providerIcons[props.result.provider] ?? { icon: 'fa-music', label: props.result.provider },
 )
 
 function handlePlaylistSelect(playlistId) {
-  if (selectedPlaylistId.value === playlistId) {
-    selectedPlaylistId.value = null
-    emit('playlist-selected', { provider: props.result.provider, playlistId: null })
+  const next = new Set(selectedPlaylistIds.value)
+  if (next.has(playlistId)) {
+    next.delete(playlistId)
   } else {
-    selectedPlaylistId.value = playlistId
-    emit('playlist-selected', { provider: props.result.provider, playlistId })
+    next.add(playlistId)
   }
+  selectedPlaylistIds.value = next
+  emit('playlist-selected', {
+    provider: props.result.provider,
+    playlistIds: [...selectedPlaylistIds.value],
+  })
 }
 </script>
 
@@ -48,7 +52,7 @@ function handlePlaylistSelect(playlistId) {
         :thumbnailUrl="playlist.thumbnailUrl"
         :title="playlist.title"
         :playlistId="playlist.id"
-        :selected="selectedPlaylistId === playlist.id"
+        :selected="selectedPlaylistIds.has(playlist.id)"
         @select="handlePlaylistSelect"
       />
     </div>

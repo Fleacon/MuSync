@@ -20,6 +20,7 @@ const trackSelections = ref({})
 const playlistSelections = ref({})
 const playlistResults = ref([])
 const loadingPlaylists = ref(false)
+const failedProviders = ref([])
 
 function handleKeydown(e) {
   if (e.key === 'Escape') close()
@@ -36,15 +37,18 @@ const providersWithTrack = computed(() =>
 
 const canGoNext = computed(() => providersWithTrack.value.length > 0)
 const canConfirm = computed(() =>
-  providersWithTrack.value.every((provider) => playlistSelections.value[provider] != null),
+  providersWithTrack.value.every(
+    (provider) =>
+      playlistSelections.value[provider] != null && playlistSelections.value[provider].length > 0,
+  ),
 )
 
 function handleTrackSelected({ provider, trackId }) {
   trackSelections.value[provider] = trackId
 }
 
-function handlePlaylistSelected({ provider, playlistId }) {
-  playlistSelections.value[provider] = playlistId
+function handlePlaylistSelected({ provider, playlistIds }) {
+  playlistSelections.value[provider] = playlistIds
 }
 
 async function goToPlaylists() {
@@ -83,11 +87,13 @@ function close() {
 }
 
 async function confirm() {
-  const selections = providersWithTrack.value.map((provider) => ({
-    provider,
-    trackId: trackSelections.value[provider],
-    playlistId: playlistSelections.value[provider],
-  }))
+  const selections = providersWithTrack.value.flatMap((provider) =>
+    playlistSelections.value[provider].map((playlistId) => ({
+      provider,
+      trackId: trackSelections.value[provider],
+      playlistId,
+    })),
+  )
 
   try {
     const res = await fetch('/api/Provider/AddToPlaylists', {
