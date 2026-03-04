@@ -1,4 +1,6 @@
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
+
 const props = defineProps({
   thumbnailUrl: {
     type: String,
@@ -35,6 +37,31 @@ const emit = defineEmits(['select'])
 function handleClick() {
   emit('select', props.trackId)
 }
+
+const imgContainer = ref(null)
+const thumbnailStyle = ref({ height: '100%', width: 'auto' })
+
+let resizeObserver = null
+
+function updateThumbnailSize() {
+  if (!imgContainer.value) return
+  const { offsetWidth, offsetHeight } = imgContainer.value
+  if (offsetWidth >= offsetHeight) {
+    thumbnailStyle.value = { height: '100%', width: 'auto' }
+  } else {
+    thumbnailStyle.value = { width: '100%', height: 'auto' }
+  }
+}
+
+onMounted(() => {
+  resizeObserver = new ResizeObserver(updateThumbnailSize)
+  resizeObserver.observe(imgContainer.value)
+  updateThumbnailSize()
+})
+
+onUnmounted(() => {
+  resizeObserver?.disconnect()
+})
 </script>
 
 <template>
@@ -42,12 +69,13 @@ function handleClick() {
     <div class="selectedIndicator" v-if="selected">
       <i class="fa-solid fa-circle-check"></i>
     </div>
-    <div class="imgContainer">
+    <div class="imgContainer" ref="imgContainer">
       <img
         :src="thumbnailUrl"
         alt="Track thumbnail"
         class="thumbnail"
         :class="provider === 'YouTubeMusic' ? 'youtubeThumbnail' : ''"
+        :style="provider !== 'YouTubeMusic' ? thumbnailStyle : {}"
       />
     </div>
     <div class="trackInfo">
@@ -56,6 +84,7 @@ function handleClick() {
       </div>
       <div class="uploaderInfo">
         <img
+          v-if="uploaderProfilePictureUrl"
           :src="uploaderProfilePictureUrl"
           alt="Uploader profile picture"
           class="profilePictureUploader"
@@ -122,8 +151,6 @@ function handleClick() {
 }
 
 .thumbnail {
-  height: 100%;
-  min-height: 90px;
   object-fit: cover;
 }
 
