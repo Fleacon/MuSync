@@ -80,6 +80,14 @@ public class UsersDAO
         return user;
     }
     
+    public async Task<bool> DeleteUserById(int userId)
+    {
+        await using var conn = db.CreateConnection();
+        await using var cmd = new MySqlCommand("DELETE FROM Users WHERE UserId = @userId", conn);
+        cmd.Parameters.AddWithValue("@userId", userId);
+        return await cmd.ExecuteNonQueryAsync() > 0;
+    }
+    
     private static User MapUser(DbDataReader reader)
     {
         return new (

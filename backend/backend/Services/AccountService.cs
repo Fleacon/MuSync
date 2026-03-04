@@ -46,4 +46,9 @@ public class AccountService
     {
         return await oAuthTokensDao.DeleteOAuthTokenByUserId(provider, userId);
     }
+
+    public async Task<bool> DeleteAccount(int userId)
+    {
+        return await usersDao.DeleteUserById(userId);
+    }
 }

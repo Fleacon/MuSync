@@ -73,28 +73,12 @@ public class AccountController : ControllerBase
     [HttpPost("Logout")]
     public async Task<IActionResult> LogOut()
     {
-        if (!Request.Cookies.TryGetValue("Session", out var sToken))
-            return NoContent();
-
-        bool isDeleted = await sessionService.DeleteSession(sToken);
+        var session = HttpContext.GetSessionToken();
+        
+        bool isDeleted = await sessionService.DeleteSession(session);
         if (isDeleted)
         {
-            Response.Cookies.Delete("Session");
-            
-            if (Request.Cookies.TryGetValue("Remember", out var rememberToken))
-            {
-                await rememberTokenService.DeleteSession(rememberToken);
-                Response.Cookies.Delete("Remember");
-            }
-            
-            foreach (var cookie in Request.Cookies.Keys)
-            {
-                if (cookie.StartsWith("AccessToken_"))
-                {
-                    Response.Cookies.Delete(cookie);
-                }
-            }
-            
+            await removeCookies();
             return Ok();
         }
 
@@ -104,19 +88,44 @@ public class AccountController : ControllerBase
     [HttpPost("Disconnect/{provider}")]
     public async Task<ActionResult> DisconnectProvider(Provider provider)
     {
-        if (!Request.Cookies.TryGetValue("Session", out var token))
-            return Unauthorized();
+        var user = HttpContext.GetCurrentUser();
 
-        var user = await sessionService.GetUserBySessionToken(token);
-        if (user is null)
-            return Unauthorized();
-
-        bool wasDeleted = await accountService.RemoveProvider(provider, user.UserId);
+        bool wasDeleted = await accountService.RemoveProvider(provider, user!.UserId);
         if (!wasDeleted)
             return NotFound();
         
         cookieService.RemoveAccessToken(Response, provider);
         
         return Ok();
+    }
+
+    [HttpDelete("Delete")]
+    public async Task<ActionResult> DeleteAccount()
+    {
+        var user = HttpContext.GetCurrentUser();
+        bool wasDeleted = await accountService.DeleteAccount(user!.UserId);
+        if (!wasDeleted)
+            return Conflict();
+        await removeCookies();
+        return Ok();
+    }
+
+    private async Task removeCookies()
+    {
+        Response.Cookies.Delete("Session");
+            
+        if (Request.Cookies.TryGetValue("Remember", out var rememberToken))
+        {
+            await rememberTokenService.DeleteSession(rememberToken);
+            Response.Cookies.Delete("Remember");
+        }
+            
+        foreach (var cookie in Request.Cookies.Keys)
+        {
+            if (cookie.StartsWith("AccessToken_"))
+            {
+                Response.Cookies.Delete(cookie);
+            }
+        }
     }
 }

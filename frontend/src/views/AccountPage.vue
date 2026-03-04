@@ -1,15 +1,15 @@
 <script setup>
-import Cookies from 'js-cookie'
 import { onMounted, ref } from 'vue'
 import ProviderAuth from '../components/ProviderAuth.vue'
 import { useAuthStore } from '../stores/auth'
 import router from '../router'
+import { useNotificationStore } from '@/stores/notificationStore'
 
 const authStore = useAuthStore()
+const notification = useNotificationStore()
+var confirmDeletion = false
 
 async function logout() {
-  Cookies.remove('Session')
-  Cookies.remove('ProviderList')
   const response = await fetch('/api/Account/Logout', {
     method: 'POST',
     credentials: 'include',
@@ -20,6 +20,30 @@ async function logout() {
     router.push('/')
   } else {
     notification.show('Error', 'Logout failed. Please try again.', false)
+  }
+}
+
+async function deleteAccount() {
+  // Option A: simple double-click confirmation (no callback needed)
+  async function deleteAccount() {
+    if (!confirmDeletion) {
+      notification.show('Are you sure?', 'Click Delete Account again to confirm.', true)
+      confirmDeletion = true
+      return
+    }
+
+    confirmDeletion = false
+    const response = await fetch('/api/Account/Delete', {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+
+    if (response.ok) {
+      notification.show('Success', 'Account deleted successfully!')
+      await logout()
+    } else {
+      notification.show('Error', 'Failed to delete account. Please try again.', false)
+    }
   }
 }
 
@@ -41,7 +65,7 @@ onMounted(async () => {
   await Promise.all(
     providers.value.map(async (localProvider) => {
       const enumValue = providerEnum(localProvider.name)
-      localProvider.loading = true // <-- add this
+      localProvider.loading = true
 
       try {
         const response = await fetch(`/api/Provider/UserData/${enumValue}`, {
@@ -59,7 +83,7 @@ onMounted(async () => {
       } catch (err) {
         console.error(`Failed loading ${localProvider.name}`, err)
       } finally {
-        localProvider.loading = false // <-- add this
+        localProvider.loading = false
       }
     }),
   )
@@ -81,8 +105,8 @@ onMounted(async () => {
       />
     </div>
     <div class="accountOptions">
-      <button @click="logout">Logout</button>
-      <button>Delete Account</button>
+      <button @click="logout" class="logoutBtn">Logout</button>
+      <button @click="deleteAccount" class="deleteAccountBtn">Delete Account</button>
     </div>
   </div>
 </template>
@@ -106,5 +130,28 @@ onMounted(async () => {
 
 h3 {
   margin: 0.5rem 0;
+}
+
+.accountOptions {
+  display: flex;
+  gap: 20px;
+  margin-top: 1rem;
+}
+
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10000px;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 10px 20px;
+  border: none;
+  background-color: var(--accent1-color);
+  color: white;
+  font-weight: bold;
+}
+
+.deleteAccountBtn {
+  background-color: red;
 }
 </style>
