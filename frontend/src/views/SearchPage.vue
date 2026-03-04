@@ -17,6 +17,13 @@ const providers = ref([
     selected: false,
   },
   { name: 'Spotify', icon: 'fa-spotify', label: 'Spotify', connected: false, selected: false },
+  {
+    name: 'SoundCloud',
+    icon: 'fa-soundcloud',
+    label: 'SoundCloud',
+    connected: false,
+    selected: false,
+  },
 ])
 
 const isLoggedIn = computed(() => auth.isAuthenticated)
@@ -91,7 +98,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
     <div class="providerContainer">
       <label
         class="providerSelect"
-        v-for="provider in providers"
+        v-for="provider in providers.filter((p) => p.connected)"
         :key="provider.name"
         :for="provider.name.toLowerCase()"
         ><input

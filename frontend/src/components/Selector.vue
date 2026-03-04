@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import ProviderResult from './ProviderResult.vue'
 import ProviderPlaylists from './Providerplaylists.vue'
 import { useNotificationStore } from '../stores/notificationStore.js'
@@ -21,13 +21,35 @@ const playlistSelections = ref({})
 const playlistResults = ref([])
 const loadingPlaylists = ref(false)
 const failedProviders = ref([])
+const containerRef = ref(null)
+const isOverflowing = ref(false)
+
+let resizeObserver = null
+function checkOverflow() {
+  const el = containerRef.value
+  if (!el) return
+  isOverflowing.value = el.scrollWidth > el.clientWidth
+}
 
 function handleKeydown(e) {
   if (e.key === 'Escape') close()
 }
 
-onMounted(() => window.addEventListener('keydown', handleKeydown))
-onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+  resizeObserver = new ResizeObserver(checkOverflow)
+  if (containerRef.value) resizeObserver.observe(containerRef.value)
+  checkOverflow()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+  resizeObserver?.disconnect()
+})
+
+watch([() => props.results, playlistResults, step], () => {
+  nextTick(checkOverflow)
+})
 
 const providersWithTrack = computed(() =>
   Object.entries(trackSelections.value)
@@ -129,7 +151,11 @@ async function confirm() {
 
     <!-- Track selection step -->
     <template v-if="step === 'tracks'">
-      <div class="selectorResultsContainer" :class="{ 'many-items': results.length > 3 }">
+      <div
+        class="selectorResultsContainer"
+        ref="containerRef"
+        :class="{ 'many-items': isOverflowing }"
+      >
         <ProviderResult
           v-for="(result, index) in results"
           :key="index"
@@ -149,7 +175,11 @@ async function confirm() {
 
     <!-- Playlist selection step -->
     <template v-else-if="step === 'playlists'">
-      <div class="selectorResultsContainer" :class="{ 'many-items': playlistResults.length > 3 }">
+      <div
+        class="selectorResultsContainer"
+        ref="containerRef"
+        :class="{ 'many-items': isOverflowing }"
+      >
         <ProviderPlaylists
           v-for="(result, index) in playlistResults"
           :key="index"
@@ -216,6 +246,7 @@ async function confirm() {
   gap: 10px;
   height: 70%;
   overflow-x: auto;
+  scrollbar-color: #708399 transparent;
   padding: 0 40px;
   justify-content: center;
 }

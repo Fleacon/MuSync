@@ -113,14 +113,17 @@ function handleClick() {
   display: flex;
   height: 100%;
   width: 45%;
+  min-width: 90px;
+  min-height: 90px;
   flex-shrink: 0;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
 }
 
 .thumbnail {
   height: 100%;
-  min-height: 100px;
+  min-height: 90px;
   object-fit: cover;
 }
 
@@ -137,12 +140,16 @@ function handleClick() {
   font-size: 1rem;
   width: 100%;
   height: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .uploaderInfo {
   display: flex;
   align-items: center;
   width: 100%;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .profilePictureUploader {
@@ -171,5 +178,9 @@ function handleClick() {
   font-weight: 200;
   font-size: 0.8rem;
   margin-left: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 </style>

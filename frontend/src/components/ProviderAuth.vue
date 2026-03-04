@@ -28,6 +28,7 @@ const props = defineProps({
 const providerEnumMap = {
   'YouTube Music': 'YouTubeMusic',
   Spotify: 'Spotify',
+  SoundCloud: 'SoundCloud',
 }
 
 const providerEnum = computed(() => providerEnumMap[props.provider])

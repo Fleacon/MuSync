@@ -1,6 +1,6 @@
 <script setup>
 import TrackResult from './TrackResult.vue'
-import { computed, ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 
 const providerIcons = {
   YouTubeMusic: { icon: 'fa-youtube', label: 'YouTube Music' },
@@ -14,6 +14,17 @@ const props = defineProps({
     default: () => ({}),
   },
 })
+
+const containerRef = ref(null)
+const isOverflowing = ref(false)
+
+let resizeObserver = null
+
+function checkOverflow() {
+  const el = containerRef.value
+  if (!el) return
+  isOverflowing.value = el.scrollWidth > el.clientWidth
+}
 
 const emit = defineEmits(['track-selected'])
 
@@ -36,6 +47,21 @@ function handleTrackSelect(trackId) {
     emit('track-selected', { provider: props.trackResult.provider, trackId })
   }
 }
+
+onMounted(() => {
+  resizeObserver = new ResizeObserver(checkOverflow)
+  if (containerRef.value) resizeObserver.observe(containerRef.value)
+  checkOverflow()
+})
+
+onUnmounted(() => resizeObserver?.disconnect())
+
+watch(
+  () => props.results,
+  () => {
+    nextTick(checkOverflow)
+  },
+)
 </script>
 
 <template>
