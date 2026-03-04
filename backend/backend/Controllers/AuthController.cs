@@ -10,14 +10,10 @@ namespace backend.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly SessionService sessionService;
-    private readonly CookieService cookieService;
     private readonly AccountService accountService;
 
-    public AuthController(SessionService sessionService, CookieService cookieService, AccountService accountService)
+    public AuthController(AccountService accountService)
     {
-        this.sessionService = sessionService;
-        this.cookieService = cookieService;
         this.accountService = accountService;
     }
 

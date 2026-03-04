@@ -6,15 +6,9 @@ namespace backend.Services;
 
 public class ProviderApiService
 {
-    private Dictionary<Provider, IProvider> providers = new()
-    {
-        { Provider.Spotify, new Providers.SpotifyAPI()},
-        { Provider.YouTubeMusic, new YoutubeAPI()}
-    };
-
     public async Task<UserPlaylists> GetUserPlaylists(Provider provider, HttpRequest request)
     {
-        if (!providers.TryGetValue(provider, out var handler))
+        if (!ProviderRegistry.TryGet(provider, out var handler))
             return new (Provider.Invalid, Array.Empty<Playlist>());
         
         if (!request.Cookies.TryGetValue($"AccessToken_{provider.ToString()}", out var token))
@@ -25,7 +19,7 @@ public class ProviderApiService
 
     public async Task<ProviderAccess> GetUserData(Provider provider, string token)
     {
-        if (!providers.TryGetValue(provider, out var handler))
+        if (!ProviderRegistry.TryGet(provider, out var handler))
             return new (Provider.Invalid, "Invalid", "-");
         
         return await handler.GetUserDataAsync(token);
@@ -33,7 +27,7 @@ public class ProviderApiService
 
     public async Task<SearchQuery> SearchForTracks(Provider provider, string token, string search)
     {
-        if (!providers.TryGetValue(provider, out var handler))
+        if (!ProviderRegistry.TryGet(provider, out var handler))
             return new (Provider.Invalid, Array.Empty<Track>());
         
         return await handler.SearchForTracksAsync(token, search);
@@ -41,7 +35,7 @@ public class ProviderApiService
 
     public async Task AddToPlaylist(Provider provider, string token, string trackId, string playlistId)
     {
-        if (!providers.TryGetValue(provider, out var handler))
+        if (!ProviderRegistry.TryGet(provider, out var handler))
             return;
 
         await handler.AddSongToPlaylistAsync(token, trackId, playlistId);

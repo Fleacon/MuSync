@@ -8,13 +8,6 @@ namespace backend.Services;
 
 public class AuthService
 {
-
-    private Dictionary<Provider, IProvider> providers = new()
-    {
-        { Provider.Spotify, new Providers.SpotifyAPI() },
-        { Provider.YouTubeMusic, new YoutubeAPI() }
-    };
-
     private readonly IDataProtector protector;
     private readonly OAuthTokensDAO oAuthTokensDao;
 
@@ -26,7 +19,7 @@ public class AuthService
 
     public ActionResult RequestAuth(Provider prov)
     {
-        if (!providers.TryGetValue(prov, out var handler))
+        if (!ProviderRegistry.TryGet(prov, out var handler))
             return new BadRequestResult();
 
         return handler.AuthRequest();
@@ -34,7 +27,7 @@ public class AuthService
 
     public async Task<OAuthResult?> HandleCallback(Provider provider, HttpContext httpContext)
     {
-        if (!providers.TryGetValue(provider, out var handler))
+        if (!ProviderRegistry.TryGet(provider, out var handler))
             return null;
 
         return await handler.HandleCallbackAsync(httpContext);
@@ -42,7 +35,7 @@ public class AuthService
 
     public async Task<OAuthResult?> RefreshAccessToken(Provider provider, User user)
     {
-        if (!providers.TryGetValue(provider, out var handler))
+        if (!ProviderRegistry.TryGet(provider, out var handler))
             return null;
         var userProviders = await oAuthTokensDao.GetOAuthTokenByUserId(user.UserId);
         var encryptedRefreshToken = userProviders
@@ -55,7 +48,7 @@ public class AuthService
 
     public async Task<OAuthResult?> RefreshAccessToken(OAuthToken oAuth)
     {
-        if (!providers.TryGetValue(oAuth.Provider, out var handler))
+        if (!ProviderRegistry.TryGet(oAuth.Provider, out var handler))
             return null;
         var refreshToken = protector.Unprotect(oAuth.RefreshToken);
         var newToken = await handler.RefreshAccessTokenAsync(refreshToken);
@@ -64,7 +57,7 @@ public class AuthService
 
     public async Task<OAuthResult?> RefreshAccessToken(Provider provider, string session)
     {
-        if (!providers.TryGetValue(provider, out var handler))
+        if (!ProviderRegistry.TryGet(provider, out var handler))
             return null;
         var oAuths = await oAuthTokensDao.GetOAuthTokenByHashedSession(SessionService.HashSessionToken(session));
         var token = oAuths.FirstOrDefault(t => t.Provider == provider);
