@@ -46,7 +46,7 @@ public class AuthService
         var refreshToken = protector.Unprotect(oAuthToken.RefreshToken);
         var newToken = await handler.RefreshAccessTokenAsync(refreshToken);
 
-        var encryptedRefreshToken = protector.Protect(refreshToken);
+        var encryptedRefreshToken = protector.Protect(newToken.RefreshToken);
         await oAuthTokensDao.UpdateRefreshTokenById(oAuthToken, encryptedRefreshToken);
         
         return new(newToken.RefreshToken, newToken.AccessToken, newToken.Expiry);
