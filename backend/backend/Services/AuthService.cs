@@ -52,19 +52,6 @@ public class AuthService
         return new(newToken.RefreshToken, newToken.AccessToken, newToken.Expiry);
     }
 
-    public async Task<OAuthResult?> RefreshAccessToken(Provider provider, string session)
-    {
-        if (!registry.TryGet(provider, out var handler))
-            return null;
-        var oAuths = await oAuthTokensDao.GetOAuthTokenByHashedSession(SessionService.HashSessionToken(session));
-        var token = oAuths.FirstOrDefault(t => t.Provider == provider);
-        if (token is null)
-            return null;
-        var refreshToken = protector.Unprotect(token.RefreshToken);
-        var newToken = await handler.RefreshAccessTokenAsync(refreshToken);
-        return new(newToken.RefreshToken, newToken.AccessToken, newToken.Expiry);
-    }
-
     public async Task CreateOAuthToken(Provider provider, OAuthResult result, int userId)
     {
         var refreshToken = protector.Protect(result.RefreshToken);

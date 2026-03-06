@@ -30,10 +30,10 @@ public class ProviderController : ControllerBase
     [HttpGet("UserData/{provider}")]
     public async Task<ActionResult<ProviderAccess>> GetUserData(Provider provider)
     {
-        var sToken = HttpContext.GetSessionToken()!;
+        var user = HttpContext.GetCurrentUser()!;
         if (!Request.Cookies.TryGetValue($"AccessToken_{provider.ToString()}", out var token))
         {
-            var newToken = await authService.RefreshAccessToken(provider, sToken);
+            var newToken = await authService.RefreshAccessToken(provider, user);
             if (newToken is null)
                 return NoContent();
             cookieService.SetAccessToken(Response, provider, newToken);
@@ -46,12 +46,12 @@ public class ProviderController : ControllerBase
     [HttpGet("Search/{provider}")]
     public async Task<ActionResult<SearchQuery>> SearchForTracks(Provider provider)
     {
-        var sToken = HttpContext.GetSessionToken()!;
+        var user = HttpContext.GetCurrentUser();
         if (string.IsNullOrWhiteSpace(Request.Query["q"]))
             return NoContent();
         if (!Request.Cookies.TryGetValue($"AccessToken_{provider.ToString()}", out var token))
         {
-            var newToken = await authService.RefreshAccessToken(provider, sToken);
+            var newToken = await authService.RefreshAccessToken(provider, user!);
             if (newToken is null)
                 return NoContent();
             cookieService.SetAccessToken(Response, provider, newToken);
@@ -67,13 +67,13 @@ public class ProviderController : ControllerBase
     [HttpPost("AddToPlaylists")]
     public async Task<IActionResult> AddToPlaylists([FromBody] IReadOnlyList<Selection> selections)
     {
-        var sToken = HttpContext.GetSessionToken();
+        var user = HttpContext.GetCurrentUser();
 
         var tasks = selections.Select(async selection =>
         {
             if (!Request.Cookies.TryGetValue($"AccessToken_{selection.Provider}", out var token))
             {
-                var newToken = await authService.RefreshAccessToken(selection.Provider, sToken);
+                var newToken = await authService.RefreshAccessToken(selection.Provider, user!);
                 if (newToken is null) return;
                 cookieService.SetAccessToken(Response, selection.Provider, newToken);
                 token = newToken.AccessToken;
