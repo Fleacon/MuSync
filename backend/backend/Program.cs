@@ -38,6 +38,7 @@ builder.Services.AddScoped<UsersDAO>();
 builder.Services.AddScoped<SessionsDAO>();
 builder.Services.AddScoped<RememberTokensDAO>();
 builder.Services.AddScoped<OAuthTokensDAO>();
+builder.Services.AddScoped<PreferencesDAO>();
 
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<SessionService>();
@@ -45,6 +46,8 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProviderApiService>();
 builder.Services.AddScoped<CookieService>();
 builder.Services.AddScoped<RememberTokenService>();
+builder.Services.AddScoped<PreferencesService>();
+
 builder.Services.AddScoped<SessionAuthFilter>();
 
 builder.Services.AddScoped<ProviderRegistry>();
