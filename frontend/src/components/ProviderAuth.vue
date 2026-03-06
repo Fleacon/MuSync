@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import ToggleSlide from './ToggleSwitch.vue'
 
 const props = defineProps({
   provider: {
@@ -53,20 +54,26 @@ async function disconnect() {
 
 <template>
   <div class="authContainer">
-    <div class="providerInfo">
-      <i :class="iconClass + ' fa-brands'"></i>
-      <div class="providerText">
-        <span v-if="loading">Loading...</span>
-        <span v-else>{{ connected ? username : 'Not connected' }}</span>
-        <p class="providerName">{{ provider }}</p>
+    <div class="providerInfoContainer">
+      <div class="providerInfo">
+        <i :class="iconClass + ' fa-brands'"></i>
+        <div class="providerText">
+          <span v-if="loading">Loading...</span>
+          <span v-else>{{ connected ? username : 'Not connected' }}</span>
+          <p class="providerName">{{ provider }}</p>
+        </div>
+        <img
+          :src="profilePictureUrl"
+          alt="Profile Picture"
+          v-if="connected && !loading"
+          class="profilePicture"
+          referrerpolicy="no-referrer"
+        />
       </div>
-      <img
-        :src="profilePictureUrl"
-        alt="Profile Picture"
-        v-if="connected && !loading"
-        class="profilePicture"
-        referrerpolicy="no-referrer"
-      />
+      <div class="favContainer" v-if="connected && !loading">
+        <ToggleSlide />
+        <p>Mark as Favorite</p>
+      </div>
     </div>
     <div class="providerButtons">
       <template v-if="!loading">
@@ -88,11 +95,14 @@ async function disconnect() {
   min-width: 470px;
 }
 
+.providerInfoContainer {
+  padding: 0.6rem;
+}
+
 .providerInfo {
   display: flex;
   align-items: center;
   gap: 20px;
-  padding: 10px;
 }
 
 .providerInfo > i {
@@ -137,6 +147,18 @@ async function disconnect() {
   width: 50px;
   height: 50px;
   border-radius: 50%;
+}
+
+.favContainer {
+  display: flex;
+  align-items: center;
+  gap: 1.3rem;
+  margin-left: 0.1rem;
+}
+
+.favContainer > p {
+  font-size: 1rem;
+  font-weight: 300;
 }
 
 @media only screen and (orientation: portrait) {
