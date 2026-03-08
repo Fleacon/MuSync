@@ -50,7 +50,7 @@ public class AuthService
         var encryptedRefreshToken = protector.Protect(newRefreshToken);
         await oAuthTokensDao.UpdateRefreshTokenById(oAuthToken, encryptedRefreshToken);
         
-        return new(newToken.RefreshToken, newToken.AccessToken, newToken.Expiry);
+        return newToken with { RefreshToken = newRefreshToken };
     }
 
     public async Task CreateOAuthToken(Provider provider, OAuthResult result, int userId)

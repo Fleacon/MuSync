@@ -40,7 +40,7 @@ public class SessionService
         var session = await sessionsDao.GetSessionByHash(hashedToken);
         if (session is null)
             return false;
-        await sessionsDao.RemoveSessionById(session.SessionId);
+        await sessionsDao.DeleteSessionById(session.SessionId);
         return true;
     }
     

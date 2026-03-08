@@ -69,7 +69,7 @@ public class SessionsDAO
         return session;
     }
 
-    public async Task RemoveSessionById(int sessionId)
+    public async Task DeleteSessionById(int sessionId)
     {
         await using var conn = db.CreateConnection();
         await using var cmd = new MySqlCommand("DELETE FROM Sessions WHERE SessionId = @sessionId", conn);
