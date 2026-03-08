@@ -71,7 +71,7 @@ input:focus + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(calc(var(--switch-width) - var(--knob-size) - var(--knob-padding) * 2));
+  transform: translateX(calc(var(--switch-width) - var(--knob-size) - var(--knob-padding) * 3));
 }
 
 .slider.round {

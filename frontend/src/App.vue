@@ -27,6 +27,9 @@ onMounted(async () => {
     <Notification />
     <RouterView />
   </main>
+  <footer>
+    <p>Made with <i class="fa-solid fa-heart"></i></p>
+  </footer>
 </template>
 
 <style>
@@ -53,6 +56,7 @@ nav {
 
 main {
   width: 100%;
+  height: 100%;
 }
 
 .account {
@@ -75,5 +79,14 @@ main {
 
 h2 {
   font-size: 2rem;
+}
+
+footer {
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100px;
+  margin-top: 5rem;
 }
 </style>

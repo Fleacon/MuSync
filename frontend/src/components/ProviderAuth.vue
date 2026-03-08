@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import ToggleSlide from './ToggleSlide.vue'
+import router from '../router'
 
 const props = defineProps({
   provider: {
@@ -52,7 +53,7 @@ async function disconnect() {
     credentials: 'include',
   })
 
-  window.location.reload()
+  router.go(0)
 }
 
 const emit = defineEmits(['update:isFavorite'])

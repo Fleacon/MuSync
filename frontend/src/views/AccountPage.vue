@@ -24,26 +24,23 @@ async function logout() {
 }
 
 async function deleteAccount() {
-  // Option A: simple double-click confirmation (no callback needed)
-  async function deleteAccount() {
-    if (!confirmDeletion) {
-      notification.show('Are you sure?', 'Click Delete Account again to confirm.', true)
-      confirmDeletion = true
-      return
-    }
+  if (!confirmDeletion) {
+    notification.show('Are you sure?', 'Click Delete Account again to confirm.', true)
+    confirmDeletion = true
+    return
+  }
 
-    confirmDeletion = false
-    const response = await fetch('/api/Account/Delete', {
-      method: 'DELETE',
-      credentials: 'include',
-    })
+  confirmDeletion = false
+  const response = await fetch('/api/Account/Delete', {
+    method: 'DELETE',
+    credentials: 'include',
+  })
 
-    if (response.ok) {
-      notification.show('Success', 'Account deleted successfully!')
-      await logout()
-    } else {
-      notification.show('Error', 'Failed to delete account. Please try again.', false)
-    }
+  if (response.ok) {
+    notification.show('Success', 'Account deleted successfully!')
+    await logout()
+  } else {
+    notification.show('Error', 'Failed to delete account. Please try again.', false)
   }
 }
 
