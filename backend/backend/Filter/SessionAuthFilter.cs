@@ -74,8 +74,6 @@ public class SessionAuthFilter : IAsyncActionFilter
         {
             return false;
         }
-        
-        var hash = RememberTokenService.HashSessionToken(rawToken);
 
         var user = await rememberTokenService.GetUserByTokenHash(rawToken);
         if (user is null)

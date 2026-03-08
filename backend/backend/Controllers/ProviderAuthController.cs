@@ -1,8 +1,5 @@
-﻿using backend.DB.DAO;
-using backend.Models;
-using backend.Providers;
+﻿using backend.Models;
 using backend.Services;
-using DotNetEnv;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
@@ -21,19 +18,22 @@ public class ProviderAuthController : ControllerBase
     }
 
     [HttpGet("Login/{provider}")]
+    [ProducesResponseType(302)]
     public ActionResult Login(Provider provider)
     {
         return authService.RequestAuth(provider, HttpContext);
     }
 
     [HttpGet("CallBack/{provider}")]
+    [ProducesResponseType(302)]
+    [ProducesResponseType(typeof(ApiError), 400)]
     public async Task<ActionResult> CallBack(Provider provider)
     {
         var user = HttpContext.GetCurrentUser();
 
         var result = await authService.HandleCallback(provider, HttpContext);
         if (result is null)
-            return BadRequest();
+            return BadRequest(new ApiError(400, $"OAuth callback failed for provider '{provider}'"));
 
         await authService.CreateOAuthToken(provider, result, user!.UserId);
         cookieService.SetAccessToken(Response, provider, result);
@@ -42,13 +42,15 @@ public class ProviderAuthController : ControllerBase
     }
 
     [HttpGet("Refresh/{provider}")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(typeof(ApiError), 400)]
     public async Task<ActionResult> RefreshAccessToken(Provider provider)
     {
         var user = HttpContext.GetCurrentUser();
 
-        var newToken = await authService.RefreshAccessToken(provider, user);
+        var newToken = await authService.RefreshAccessToken(provider, user!);
         if (newToken is null)
-            return BadRequest();
+            return BadRequest(new ApiError(400, $"Failed to refresh access token for provider '{provider}'"));
 
         cookieService.SetAccessToken(Response, provider, newToken);
         return Ok();

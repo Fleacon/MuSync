@@ -1,5 +1,4 @@
-﻿using backend.DB.DAO;
-using backend.Filter;
+﻿using backend.Filter;
 using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -25,15 +24,18 @@ public class AccountController : ControllerBase
 
     [HttpPost("Login")]
     [SkipSessionAuth]
+    [ProducesResponseType(typeof(SessionContext), 200)]
+    [ProducesResponseType(typeof(ApiError), 404)]
+    [ProducesResponseType(typeof(ApiError),401)]
     public async Task<ActionResult<SessionContext>> TryLogin([FromBody] UserAuthData userAuthData)
     {
         var (result, user) = await accountService.ValidateCredentials(userAuthData.Username, userAuthData.Password);
         if (result == LoginResult.NOTFOUND)
-            return NotFound();
+            return NotFound(new ApiError(404, "User not found"));
         if (result == LoginResult.UNAUTHORIZED)
-            return Unauthorized();
+            return Unauthorized(new ApiError(401, "Invalid username or password"));
         
-        var providers = await accountService.GetLinkedProviders(user.UserId);
+        var providers = await accountService.GetLinkedProviders(user!.UserId);
         var token = sessionService.GenerateSessionToken();
         var session = await sessionService.GenerateSession(user.UserId, token);
         cookieService.SetSession(Response, token, session.ExpiryDate);
@@ -50,11 +52,13 @@ public class AccountController : ControllerBase
 
     [HttpPost("Register")]
     [SkipSessionAuth]
+    [ProducesResponseType(typeof(SessionContext), 200)]
+    [ProducesResponseType(typeof(ApiError), 409)]
     public async Task<ActionResult<SessionContext>> TryRegister([FromBody] UserAuthData userAuthData)
     {
         var newUser = await accountService.CreateAccount(userAuthData.Username, userAuthData.Password);
         if (newUser is null)
-            return Conflict();
+            return Conflict(new ApiError(409, "User already exists"));
 
         var token = sessionService.GenerateSessionToken();
         var session = await sessionService.GenerateSession(newUser.UserId, token);
@@ -67,32 +71,34 @@ public class AccountController : ControllerBase
             cookieService.SetRemember(Response, rawRememberToken, rememberToken.ExpiryDate);
         }
 
-        return Ok(new SessionContext(newUser.Username, null));
+        return Ok(new SessionContext(newUser.Username, Array.Empty<Provider>()));
     }
 
     [HttpPost("Logout")]
+    [ProducesResponseType( 200)]
+    [ProducesResponseType(typeof(ApiError), 404)]
     public async Task<IActionResult> LogOut()
     {
         var session = HttpContext.GetSessionToken();
-        
-        bool isDeleted = await sessionService.DeleteSession(session);
-        if (isDeleted)
-        {
-            await removeCookies();
-            return Ok();
-        }
 
-        return NotFound();
+        bool isDeleted = await sessionService.DeleteSession(session!);
+        if (!isDeleted)
+            return NotFound(new ApiError(404, "Session not found"));
+        
+        await RemoveCookies();
+        return Ok();
     }
     
     [HttpPost("Disconnect/{provider}")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(typeof(ApiError), 404)]
     public async Task<ActionResult> DisconnectProvider(Provider provider)
     {
         var user = HttpContext.GetCurrentUser();
 
         bool wasDeleted = await accountService.RemoveProvider(provider, user!.UserId);
         if (!wasDeleted)
-            return NotFound();
+            return NotFound(new ApiError(404, $"Provider '{provider}' is not linked to this account"));
         
         cookieService.RemoveAccessToken(Response, provider);
         
@@ -100,17 +106,19 @@ public class AccountController : ControllerBase
     }
 
     [HttpDelete("Delete")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(typeof(ApiError), 404)]
     public async Task<ActionResult> DeleteAccount()
     {
         var user = HttpContext.GetCurrentUser();
         bool wasDeleted = await accountService.DeleteAccount(user!.UserId);
         if (!wasDeleted)
-            return Conflict();
-        await removeCookies();
+            return NotFound(new ApiError(404, "Account was not found"));
+        await RemoveCookies();
         return Ok();
     }
 
-    private async Task removeCookies()
+    private async Task RemoveCookies()
     {
         Response.Cookies.Delete("Session");
             

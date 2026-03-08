@@ -18,10 +18,11 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("Me")]
+    [ProducesResponseType(typeof(SessionContext), 200)]
     public async Task<ActionResult<SessionContext>> GetSessionContext()
     {
-        var user = HttpContext.GetCurrentUser()!;
-        var providers = await accountService.GetLinkedProviders(user.UserId);
+        var user = HttpContext.GetCurrentUser();
+        var providers = await accountService.GetLinkedProviders(user!.UserId);
         return Ok(new SessionContext(user.Username, providers));
     }
 }

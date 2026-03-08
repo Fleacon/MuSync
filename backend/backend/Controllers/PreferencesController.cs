@@ -1,4 +1,5 @@
-﻿using backend.Services;
+﻿using backend.Models;
+using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
@@ -15,6 +16,7 @@ public class PreferencesController : ControllerBase
     }
 
     [HttpGet]
+    [ProducesResponseType(typeof(IReadOnlyDictionary<string, string>), 200)]
     public async Task<ActionResult<IReadOnlyDictionary<string, string>>> GetAll()
     {
         var user = HttpContext.GetCurrentUser()!;
@@ -23,16 +25,19 @@ public class PreferencesController : ControllerBase
     }
 
     [HttpGet("{key}")]
+    [ProducesResponseType(typeof(string), 200)]
+    [ProducesResponseType(typeof(ApiError), 404)]
     public async Task<ActionResult<string>> Get(string key)
     {
         var user = HttpContext.GetCurrentUser()!;
         var value = await preferencesService.GetPreference(user.UserId, key);
         if (value is null)
-            return NotFound();
+            return NotFound(new ApiError(404, $"Preference '{key}' not found"));
         return Ok(value);
     }
 
     [HttpPut("{key}")]
+    [ProducesResponseType(200)]
     public async Task<IActionResult> Set(string key, [FromBody] string value)
     {
         var user = HttpContext.GetCurrentUser()!;
@@ -41,12 +46,14 @@ public class PreferencesController : ControllerBase
     }
 
     [HttpDelete("{key}")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(typeof(ApiError), 404)]
     public async Task<IActionResult> Delete(string key)
     {
         var user = HttpContext.GetCurrentUser()!;
         var wasDeleted = await preferencesService.DeletePreference(user.UserId, key);
         if (!wasDeleted)
-            return NotFound();
+            return NotFound(new ApiError(404, $"Preference '{key}' not found"));
         return Ok();
     }
 }

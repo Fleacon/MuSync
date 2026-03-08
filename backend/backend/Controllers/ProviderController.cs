@@ -1,4 +1,5 @@
-﻿using backend.DB.DAO;
+﻿using System.Collections.Concurrent;
+using backend.DB.DAO;
 using backend.Filter;
 using backend.Models;
 using backend.Services;
@@ -22,67 +23,84 @@ public class ProviderController : ControllerBase
     }
     
     [HttpGet("Get/Playlists/{provider}")]
+    [ProducesResponseType(typeof(UserPlaylists), 200)]
     public async Task<ActionResult<UserPlaylists>> GetUserPlaylists(Provider provider)
     {
         return await apiService.GetUserPlaylists(provider, Request);
     }
 
     [HttpGet("UserData/{provider}")]
+    [ProducesResponseType(typeof(ProviderAccess), 200)]
+    [ProducesResponseType(typeof(ApiError), 401)]
     public async Task<ActionResult<ProviderAccess>> GetUserData(Provider provider)
     {
         var user = HttpContext.GetCurrentUser()!;
-        if (!Request.Cookies.TryGetValue($"AccessToken_{provider.ToString()}", out var token))
-        {
-            var newToken = await authService.RefreshAccessToken(provider, user);
-            if (newToken is null)
-                return NoContent();
-            cookieService.SetAccessToken(Response, provider, newToken);
-            token = newToken.AccessToken;
-        }
+        var token = await GetOrRefreshAccessToken(provider, user);
+        if (token is null)
+            return Unauthorized(new ApiError(401, $"Access token for '{provider}' could not be refreshed. Please reconnect."));
 
         return Ok(await apiService.GetUserData(provider, token));
     }
 
     [HttpGet("Search/{provider}")]
+    [ProducesResponseType(typeof(SearchQuery), 200)]
+    [ProducesResponseType(typeof(ApiError), 400)]
+    [ProducesResponseType(typeof(ApiError), 401)]
     public async Task<ActionResult<SearchQuery>> SearchForTracks(Provider provider)
     {
-        var user = HttpContext.GetCurrentUser();
         if (string.IsNullOrWhiteSpace(Request.Query["q"]))
-            return NoContent();
-        if (!Request.Cookies.TryGetValue($"AccessToken_{provider.ToString()}", out var token))
-        {
-            var newToken = await authService.RefreshAccessToken(provider, user!);
-            if (newToken is null)
-                return NoContent();
-            cookieService.SetAccessToken(Response, provider, newToken);
-            token = newToken.AccessToken;
-        }
+            return BadRequest(new ApiError(400, "Query parameter 'q' is required"));
 
-        var q = Request.Query["q"];
-        var query = await apiService.SearchForTracks(provider, token, q);
-        
-        return Ok(query);
+        var user = HttpContext.GetCurrentUser()!;
+        var token = await GetOrRefreshAccessToken(provider, user);
+        if (token is null)
+            return Unauthorized(new ApiError(401, $"Access token for '{provider}' could not be refreshed. Please reconnect."));
+
+        return Ok(await apiService.SearchForTracks(provider, token, Request.Query["q"]));
     }
 
     [HttpPost("AddToPlaylists")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(typeof(ApiError), 400)] 
     public async Task<IActionResult> AddToPlaylists([FromBody] IReadOnlyList<Selection> selections)
     {
+        if (selections.Count == 0)
+            return BadRequest(new ApiError(400, "No selections provided"));
+        
         var user = HttpContext.GetCurrentUser();
+        var failed = new ConcurrentBag<Selection>();
 
-        var tasks = selections.Select(async selection =>
+        await Task.WhenAll(selections.Select(async selection =>
         {
-            if (!Request.Cookies.TryGetValue($"AccessToken_{selection.Provider}", out var token))
+            var token = await GetOrRefreshAccessToken(selection.Provider, user!);
+            if (token is null)
             {
-                var newToken = await authService.RefreshAccessToken(selection.Provider, user!);
-                if (newToken is null) return;
-                cookieService.SetAccessToken(Response, selection.Provider, newToken);
-                token = newToken.AccessToken;
+                failed.Add(selection);
+                return;
             }
-
             await apiService.AddToPlaylist(selection.Provider, token, selection.TrackId, selection.PlaylistId);
-        });
+        }));
 
-        await Task.WhenAll(tasks);
+        if (!failed.IsEmpty)
+            return Ok(new
+            {
+                succeeded = selections.Except(failed),
+                failed
+            });
+
         return Ok();
+    }
+    
+    private async Task<string?> GetOrRefreshAccessToken(Provider provider, User user)
+    {
+        if (Request.Cookies.TryGetValue($"AccessToken_{provider}", out var token))
+            return token;
+
+        var newToken = await authService.RefreshAccessToken(provider, user);
+        if (newToken is null)
+            return null;
+
+        cookieService.SetAccessToken(Response, provider, newToken);
+        return newToken.AccessToken;
     }
 }

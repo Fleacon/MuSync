@@ -24,16 +24,15 @@ builder.Services.AddCors(options =>
     });
 });
 
-
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
-builder.Services.AddScoped<DbManager>(_ => new(connString));
 
+builder.Services.AddScoped<DbManager>(_ => new(connString));
 builder.Services.AddScoped<UsersDAO>();
 builder.Services.AddScoped<SessionsDAO>();
 builder.Services.AddScoped<RememberTokensDAO>();
@@ -59,6 +58,11 @@ builder.Services.AddControllers(options =>
     options.Filters.AddService<SessionAuthFilter>();
 });
 
+builder.Services.AddSwaggerGen(options =>
+{
+    options.OperationFilter<SessionAuthOperationFilter>();
+});
+
 builder.Services.AddDataProtection().PersistKeysToFileSystem(new("/sec/keys/"));
 
 var app = builder.Build();
@@ -66,6 +70,9 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
+
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
