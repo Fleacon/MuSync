@@ -20,6 +20,7 @@ router.beforeEach(async (to) => {
   const auth = useAuthStore()
 
   await auth.fetchAuth()
+  await auth.fetchPreferences()
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return '/login'

@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import ToggleSlide from './ToggleSwitch.vue'
+import ToggleSlide from './ToggleSlide.vue'
 
 const props = defineProps({
   provider: {
@@ -23,6 +23,10 @@ const props = defineProps({
   loading: {
     type: Boolean,
     default: true,
+  },
+  isFavorite: {
+    type: Boolean,
+    default: false,
   },
 })
 
@@ -50,6 +54,8 @@ async function disconnect() {
 
   window.location.reload()
 }
+
+const emit = defineEmits(['update:isFavorite'])
 </script>
 
 <template>
@@ -71,7 +77,10 @@ async function disconnect() {
         />
       </div>
       <div class="favContainer" v-if="connected && !loading">
-        <ToggleSlide />
+        <ToggleSlide
+          :modelValue="isFavorite"
+          @update:modelValue="emit('update:isFavorite', $event)"
+        />
         <p>Mark as Favorite</p>
       </div>
     </div>

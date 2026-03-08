@@ -14,15 +14,21 @@ const providers = ref([
     icon: 'fa-youtube',
     label: 'YouTube Music',
     connected: false,
-    selected: false,
+    selected: auth.favoriteProviders.includes('YouTube Music'),
   },
-  { name: 'Spotify', icon: 'fa-spotify', label: 'Spotify', connected: false, selected: false },
+  {
+    name: 'Spotify',
+    icon: 'fa-spotify',
+    label: 'Spotify',
+    connected: false,
+    selected: auth.favoriteProviders.includes('Spotify'),
+  },
   {
     name: 'SoundCloud',
     icon: 'fa-soundcloud',
     label: 'SoundCloud',
     connected: false,
-    selected: false,
+    selected: auth.favoriteProviders.includes('SoundCloud'),
   },
 ])
 

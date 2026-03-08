@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, onBeforeUnmount } from 'vue'
 import ProviderAuth from '../components/ProviderAuth.vue'
 import { useAuthStore } from '../stores/auth'
 import router from '../router'
@@ -48,9 +48,24 @@ async function deleteAccount() {
 }
 
 const providers = ref([
-  { name: 'YouTube Music', icon: 'fa-youtube', connected: false },
-  { name: 'Spotify', icon: 'fa-spotify', connected: false },
-  { name: 'SoundCloud', icon: 'fa-soundcloud', connected: false },
+  {
+    name: 'YouTube Music',
+    icon: 'fa-youtube',
+    connected: false,
+    isFavorite: authStore.favoriteProviders.includes('YouTube Music'),
+  },
+  {
+    name: 'Spotify',
+    icon: 'fa-spotify',
+    connected: false,
+    isFavorite: authStore.favoriteProviders.includes('Spotify'),
+  },
+  {
+    name: 'SoundCloud',
+    icon: 'fa-soundcloud',
+    connected: false,
+    isFavorite: authStore.favoriteProviders.includes('SoundCloud'),
+  },
 ])
 
 const providerEnumMap = {
@@ -88,6 +103,23 @@ onMounted(async () => {
     }),
   )
 })
+
+async function saveFavorites() {
+  const favorites = providers.value.filter((p) => p.isFavorite).map((p) => p.name)
+
+  await fetch('/api/Preferences/favoriteProviders', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(JSON.stringify(favorites)), // stringified array stored as preference string value
+  })
+}
+
+window.addEventListener('beforeunload', saveFavorites)
+onBeforeUnmount(async () => {
+  window.removeEventListener('beforeunload', saveFavorites)
+  await saveFavorites()
+})
 </script>
 
 <template>
@@ -102,6 +134,8 @@ onMounted(async () => {
         :username="value.username"
         :profilePictureUrl="value.profilePictureUrl"
         :loading="value.loading"
+        :isFavorite="value.isFavorite"
+        @update:isFavorite="value.isFavorite = $event"
       />
     </div>
     <div class="accountOptions">

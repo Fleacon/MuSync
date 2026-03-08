@@ -6,6 +6,7 @@ export const useAuthStore = defineStore('auth', {
     linkedProviders: [],
     isAuthenticated: false,
     hasCheckedAuth: false,
+    favoriteProviders: [],
   }),
 
   getters: {
@@ -18,6 +19,7 @@ export const useAuthStore = defineStore('auth', {
 
       await this.fetchAuth()
     },
+
     async fetchAuth() {
       try {
         const res = await fetch('/api/Auth/Me', {
@@ -39,10 +41,26 @@ export const useAuthStore = defineStore('auth', {
         this.hasCheckedAuth = true
       }
     },
+
+    async fetchPreferences() {
+      try {
+        const res = await fetch('/api/Preferences', {
+          credentials: 'include',
+        })
+        if (!res.ok) return
+
+        const prefs = await res.json()
+        this.favoriteProviders = JSON.parse(prefs['favoriteProviders'] ?? '[]')
+      } catch {
+        this.favoriteProviders = []
+      }
+    },
+
     async handleUnauthorized() {
       this.hasCheckedAuth = false
       await this.fetchAuth()
     },
+
     setAuth(user, providers) {
       this.user = user
       this.linkedProviders = providers ?? []
@@ -55,6 +73,7 @@ export const useAuthStore = defineStore('auth', {
       this.linkedProviders = []
       this.isAuthenticated = false
       this.hasCheckedAuth = true
+      this.favoriteProviders = []
     },
   },
 })
