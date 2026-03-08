@@ -112,6 +112,27 @@ CREATE TABLE `Users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+SET GLOBAL event_scheduler = ON;
+
+--
+-- Events
+--
+CREATE EVENT cleanup_expired_remember_tokens
+ON SCHEDULE EVERY 5 MINUTE
+STARTS '2026-02-05 20:44:41.000'
+ON COMPLETION NOT PRESERVE
+ENABLE
+DO DELETE FROM RememberTokens
+  WHERE ExpiryDate < NOW();
+
+CREATE EVENT cleanup_expired_Sessions
+ON SCHEDULE EVERY 5 MINUTE
+STARTS '2026-02-05 20:49:22.000'
+ON COMPLETION NOT PRESERVE
+ENABLE
+DO DELETE FROM Sessions
+  WHERE ExpiryDate < NOW();
+
 --
 -- Dumping routines for database 'musyncdevdb'
 --
