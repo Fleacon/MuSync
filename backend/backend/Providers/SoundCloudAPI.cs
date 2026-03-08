@@ -106,7 +106,7 @@ public class SoundCloudAPI : IProvider
         var json = await response.Content.ReadFromJsonAsync<List<SoundCloudPlaylist>>();
         
         List<Playlist> playlists = [];
-        playlists.AddRange(json.Select(p => new Playlist(p.Id, p.Title, p.ArtworkUrl ?? "")));
+        playlists.AddRange(json!.Select(p => new Playlist(p.Id, p.Title, p.ArtworkUrl ?? "")));
 
         return new(Provider, playlists);
     }
@@ -120,7 +120,7 @@ public class SoundCloudAPI : IProvider
         response.EnsureSuccessStatusCode();
         var json = await response.Content.ReadFromJsonAsync<SoundCloudUser>();
 
-        return new(Provider, json.Username, json.Avatar);
+        return new(Provider, json!.Username, json.Avatar);
     }
 
     public async Task<SearchQuery> SearchForTracksAsync(string accessToken, string query)
@@ -137,7 +137,7 @@ public class SoundCloudAPI : IProvider
             tracks!.Select(t => new Track(
                 t.Id.ToString(),
                 t.Title,
-                t.ArtworkUrl,
+                t.ArtworkUrl ?? "",
                 t.User.Username,
                 t.User.Avatar
             )).ToArray());

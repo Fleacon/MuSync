@@ -77,7 +77,7 @@ public class SessionsDAO
         await cmd.ExecuteNonQueryAsync();
     }
 
-    public async Task<Session> UpdateExpiryDateById(int sessionId, DateTime newExpiry)
+    public async Task<Session?> UpdateExpiryDateById(int sessionId, DateTime newExpiry)
     {
         await using var conn = db.CreateConnection();
         await using var cmd = new MySqlCommand("UPDATE Sessions SET ExpiryDate = @newExpiry WHERE SessionId = @sessionId", conn);

@@ -44,9 +44,4 @@ public class CookieService
             Path = "/"
         });
     }
-
-    public void RemoveRemember(HttpResponse httpResponse)
-    {
-        httpResponse.Cookies.Delete("Remember");
-    }
 }

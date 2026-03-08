@@ -8,12 +8,12 @@ public static class PasswordService
     
     public static string HashPassword(string pw)
     {
-        return hasher.HashPassword(null, pw);
+        return hasher.HashPassword("", pw);
     }
 
     public static bool VerifyPassword(string hashedPw, string providedPw)
     {
-        var result = hasher.VerifyHashedPassword(null, hashedPw, providedPw);
+        var result = hasher.VerifyHashedPassword("", hashedPw, providedPw);
         return result == PasswordVerificationResult.Success;
     }
 }

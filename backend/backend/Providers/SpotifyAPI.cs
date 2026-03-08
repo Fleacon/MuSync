@@ -2,7 +2,6 @@
 using DotNetEnv;
 using Microsoft.AspNetCore.Mvc;
 using SpotifyAPI.Web;
-using SpotifyAPI.Web.Http;
 using SearchRequest = SpotifyAPI.Web.SearchRequest;
 
 namespace backend.Providers;
@@ -69,6 +68,8 @@ public class SpotifyAPI : IProvider
         var response = await client.Playlists.CurrentUsers();
 
         List<Playlist> playlists = [];
+        if (response.Items is null)
+            return new(Provider, Array.Empty<Playlist>());
         foreach (var p in response.Items)
         {
             var thumbUrl = p.Images?.FirstOrDefault()?.Url ?? "";
@@ -86,7 +87,7 @@ public class SpotifyAPI : IProvider
         string thumbnail = "";
         if (response.Images.FirstOrDefault() is not null)
         {
-            thumbnail = response.Images.FirstOrDefault().Url;   
+            thumbnail = response.Images.FirstOrDefault()!.Url;   
         }
 
         return new(Provider, response.DisplayName, thumbnail);
@@ -102,6 +103,8 @@ public class SpotifyAPI : IProvider
         var response = await client.Search.Item(searchRequest);
 
         List<Track> tracks = [];
+        if (response.Tracks.Items is null)
+            return new(Provider, Array.Empty<Track>());
         foreach (var t in response.Tracks.Items)
         {
             var uploaderResult = await client.Artists.Get(t.Artists.First().Id);

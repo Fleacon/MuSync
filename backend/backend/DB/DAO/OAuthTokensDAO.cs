@@ -1,6 +1,5 @@
 ﻿using System.Data.Common;
 using backend.Models;
-using Google.Protobuf.Reflection;
 using MySql.Data.MySqlClient;
 
 namespace backend.DB.DAO;

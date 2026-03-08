@@ -49,7 +49,7 @@ public class YoutubeAPI : IProvider
 
         var tokenResponse = await flow.ExchangeCodeForTokenAsync("default", code, redirectUri, CancellationToken.None);
 
-        return new (tokenResponse.RefreshToken, tokenResponse.AccessToken, DateTime.Now.AddSeconds((double)tokenResponse.ExpiresInSeconds));
+        return new (tokenResponse.RefreshToken, tokenResponse.AccessToken, DateTime.Now.AddSeconds((double)tokenResponse.ExpiresInSeconds!));
     }
     
     public async Task<OAuthResult> RefreshAccessTokenAsync(string refreshToken)
@@ -61,7 +61,7 @@ public class YoutubeAPI : IProvider
         });
 
         var tokenResponse = await flow.RefreshTokenAsync("default", refreshToken, CancellationToken.None);
-        return new (tokenResponse.RefreshToken, tokenResponse.AccessToken, DateTime.Now.AddSeconds((double)tokenResponse.ExpiresInSeconds));
+        return new (tokenResponse.RefreshToken, tokenResponse.AccessToken, DateTime.Now.AddSeconds((double)tokenResponse.ExpiresInSeconds!));
     }
 
     public async Task<UserPlaylists> GetUserPlaylistsAsync(string accessToken)
