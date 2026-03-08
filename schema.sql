@@ -21,7 +21,7 @@ SET @@SESSION.SQL_LOG_BIN= 0;
 -- GTID state at the beginning of the backup 
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '12f1110c-0283-11f1-9fc7-2a78e37884c4:1-739';
+SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '12f1110c-0283-11f1-9fc7-2a78e37884c4:1-910';
 
 --
 -- Table structure for table `OAuthTokens`
@@ -36,9 +36,9 @@ CREATE TABLE `OAuthTokens` (
   `RefreshToken` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
   `UserId` int DEFAULT NULL,
   PRIMARY KEY (`OAuthId`),
-  KEY `OAuthTokens_Users_FK` (`UserId`),
+  UNIQUE KEY `OAuthTokens_UNIQUE` (`UserId`,`Provider`),
   CONSTRAINT `OAuthTokens_Users_FK` FOREIGN KEY (`UserId`) REFERENCES `Users` (`UserId`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -58,7 +58,7 @@ CREATE TABLE `RememberTokens` (
   UNIQUE KEY `RememberTokens_UNIQUE` (`TokenHash`),
   KEY `RememberToken_Users_FK` (`UserId`),
   CONSTRAINT `RememberToken_Users_FK` FOREIGN KEY (`UserId`) REFERENCES `Users` (`UserId`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -78,7 +78,7 @@ CREATE TABLE `Sessions` (
   UNIQUE KEY `Sessions_UNIQUE` (`SessionHash`),
   KEY `Sessions_Users_FK` (`UserId`),
   CONSTRAINT `Sessions_Users_FK` FOREIGN KEY (`UserId`) REFERENCES `Users` (`UserId`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=107 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -109,7 +109,7 @@ CREATE TABLE `Users` (
   `Username` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs NOT NULL,
   `Password` varchar(100) NOT NULL,
   PRIMARY KEY (`UserId`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -126,4 +126,4 @@ SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-06 10:35:57
+-- Dump completed on 2026-03-08 23:25:20
