@@ -7,9 +7,10 @@ using backend.Services;
 using DotNetEnv;
 using Microsoft.AspNetCore.DataProtection;
 
-Env.Load();
+Env.Load("../../.env");
 
-var connString = Env.GetString("DB_CONNECTION") ?? throw new InvalidOperationException("DB_CONNECTION not found");
+var connString = Environment.GetEnvironmentVariable("DB_CONNECTION")
+                 ?? throw new InvalidOperationException("DB_CONNECTION not found");
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers().AddJsonOptions(options =>
@@ -46,12 +48,9 @@ builder.Services.AddScoped<ProviderApiService>();
 builder.Services.AddScoped<CookieService>();
 builder.Services.AddScoped<RememberTokenService>();
 builder.Services.AddScoped<PreferencesService>();
+builder.Services.AddScoped<ProviderRegistry>();
 
 builder.Services.AddScoped<SessionAuthFilter>();
-
-builder.Services.AddScoped<ProviderRegistry>();
-builder.Services.AddScoped<SoundCloudAPI>();
-builder.Services.AddHttpClient();
 
 builder.Services.AddControllers(options =>
 {

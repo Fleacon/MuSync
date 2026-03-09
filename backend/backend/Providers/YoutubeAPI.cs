@@ -13,9 +13,9 @@ public class YoutubeAPI : IProvider
 {
     public Provider Provider => Provider.YouTubeMusic;
     
-    private readonly string clientId = Env.GetString("GOOGLE_CLIENTID");
-    private readonly string clientSecret = Env.GetString("GOOGLE_CLIENTSECRET");
-    private readonly string redirectUri = Env.GetString("GOOGLE_REDIRECTURI");
+    private readonly string clientId;
+    private readonly string clientSecret;
+    private readonly string redirectUri;
     
     private string[] scope = 
     {
@@ -23,6 +23,31 @@ public class YoutubeAPI : IProvider
         "https://www.googleapis.com/auth/userinfo.profile",
         "https://www.googleapis.com/auth/youtube.force-ssl"
     };
+    
+    private YoutubeAPI(string clientId, string clientSecret, string redirectUri)
+    {
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
+        this.redirectUri = redirectUri;
+    }
+
+    public static bool TryCreate(out YoutubeAPI? instance)
+    {
+        var clientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENTID");
+        var clientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENTSECRET");
+        var redirectUri = Environment.GetEnvironmentVariable("GOOGLE_REDIRECTURI");
+
+        if (string.IsNullOrEmpty(clientId) ||
+            string.IsNullOrEmpty(clientSecret) ||
+            string.IsNullOrEmpty(redirectUri))
+        {
+            instance = null;
+            return false;
+        }
+
+        instance = new(clientId, clientSecret, redirectUri);
+        return true;
+    }
     
     public ActionResult AuthRequest(HttpContext httpContext)
     {

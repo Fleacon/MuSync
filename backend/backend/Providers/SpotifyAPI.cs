@@ -20,9 +20,34 @@ public class SpotifyAPI : IProvider
         Scopes.PlaylistReadCollaborative
     };
     
-    private readonly string clientId = Env.GetString("SPOTIFY_CLIENTID");
-    private readonly string clientSecret = Env.GetString("SPOTIFY_CLIENTSECRET");
-    private readonly string redirectUri = Env.GetString("SPOTIFY_REDIRECTURI");
+    private readonly string clientId;
+    private readonly string clientSecret;
+    private readonly string redirectUri;
+
+    private SpotifyAPI(string clientId, string clientSecret, string redirectUri)
+    {
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
+        this.redirectUri = redirectUri;
+    }
+
+    public static bool TryCreate(out SpotifyAPI? instance)
+    {
+        var clientId = Environment.GetEnvironmentVariable("SPOTIFY_CLIENTID");
+        var clientSecret = Environment.GetEnvironmentVariable("SPOTIFY_CLIENTSECRET");
+        var redirectUri = Environment.GetEnvironmentVariable("SPOTIFY_REDIRECTURI");
+
+        if (string.IsNullOrEmpty(clientId) ||
+            string.IsNullOrEmpty(clientSecret) ||
+            string.IsNullOrEmpty(redirectUri))
+        {
+            instance = null;
+            return false;
+        }
+
+        instance = new(clientId, clientSecret, redirectUri);
+        return true;
+    }
     
     public ActionResult AuthRequest(HttpContext httpContext)
     {

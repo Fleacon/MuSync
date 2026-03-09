@@ -11,18 +11,39 @@ public class SoundCloudAPI : IProvider
 {
     public Provider Provider { get; } = Provider.SoundCloud;
     
-    private readonly string clientId = Env.GetString("SOUNDCLOUD_CLIENTID");
-    private readonly string clientSecret = Env.GetString("SOUNDCLOUD_CLIENTSECRET");
-    private readonly string redirectUri = Env.GetString("SOUNDCLOUD_REDIRECTURI");
+    private readonly string clientId;
+    private readonly string clientSecret;
+    private readonly string redirectUri;
 
     private readonly HttpClient httpClient;
     private readonly string apiPath = "https://api.soundcloud.com";
 
-    public SoundCloudAPI(HttpClient httpClient)
+    private SoundCloudAPI(HttpClient httpClient, string clientId, string clientSecret, string redirectUri)
     {
         this.httpClient = httpClient;
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
+        this.redirectUri = redirectUri;
     }
-    
+
+    public static bool TryCreate(HttpClient httpClient, out SoundCloudAPI? instance)
+    {
+        var clientId = Environment.GetEnvironmentVariable("SOUNDCLOUD_CLIENTID");
+        var clientSecret = Environment.GetEnvironmentVariable("SOUNDCLOUD_CLIENTSECRET");
+        var redirectUri = Environment.GetEnvironmentVariable("SOUNDCLOUD_REDIRECTURI");
+
+        if (string.IsNullOrEmpty(clientId) ||
+            string.IsNullOrEmpty(clientSecret) ||
+            string.IsNullOrEmpty(redirectUri))
+        {
+            instance = null;
+            return false;
+        }
+
+        instance = new (httpClient, clientId, clientSecret, redirectUri);
+        return true;
+    }
+
     public ActionResult AuthRequest(HttpContext httpContext)
     {
         var codeVerifier = GenerateCodeVerifier();
