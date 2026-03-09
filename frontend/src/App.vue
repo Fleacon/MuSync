@@ -2,8 +2,14 @@
 import { onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import Notification from './components/Notification.vue'
+import heartSound from '@/assets/sounds/VeigarLaugh.mp3'
 
 const auth = useAuthStore()
+
+function playHeartSound() {
+  const audio = new Audio(heartSound)
+  audio.play()
+}
 
 onMounted(async () => {
   await auth.checkAuth()
@@ -28,7 +34,9 @@ onMounted(async () => {
     <RouterView />
   </main>
   <footer>
-    <p>Made with <i class="fa-solid fa-heart"></i></p>
+    <p>
+      Made with <i class="fa-solid fa-heart" @click="playHeartSound" style="cursor: pointer"></i>
+    </p>
   </footer>
 </template>
 
