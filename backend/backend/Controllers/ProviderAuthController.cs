@@ -38,7 +38,8 @@ public class ProviderAuthController : ControllerBase
         await authService.CreateOAuthToken(provider, result, user!.UserId);
         cookieService.SetAccessToken(Response, provider, result);
 
-        return Redirect("https://127.0.0.1:5173/account");
+        var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost";
+        return Redirect($"{frontendUrl}/account");
     }
 
     [HttpGet("Refresh/{provider}")]
