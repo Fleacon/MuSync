@@ -587,3 +587,8 @@ npm-debug.log
 yarn-error.log
 
 # End of https://www.toptal.com/developers/gitignore/api/csharp,vue,vuejs,python
+
+certs/
+*.pem
+*.key
+*.crt
