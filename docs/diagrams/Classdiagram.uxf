@@ -1,0 +1,812 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>2</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>644</x>
+      <y>434</y>
+      <w>56</w>
+      <h>18</h>
+    </coordinates>
+    <panel_attributes>DbManager
+--
+- connString: string
+--
++ DbManager(connString: string)
++ CreateConnection(): MySqlConnection</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>528</x>
+      <y>386</y>
+      <w>82</w>
+      <h>34</h>
+    </coordinates>
+    <panel_attributes>UsersDAO
+--
+--
++ UsersDAO(db: DbManager)
++ GetUserById(id: int): Task&lt;User?&gt;
++ GetUserByUsername(name: string): Task&lt;User?&gt;
++ GetUserByHashedSessionToken(token: string): Task&lt;User?&gt;
++ GetUserByRememberHash(hash: string): Task&lt;User?&gt;
++ CreateUser(user: User): Task&lt;User&gt;
++ DeleteUserById(userId: int): Task&lt;bool&gt;
+_- MapUser(reader: DbDataReader): User_</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>618</x>
+      <y>386</y>
+      <w>104</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>SessionsDAO
+--
++ SessionsDAO(db: DbManager)
++ GetSessionById(id: int): Task&lt;List &lt;Session&gt; &gt;
++ GetSessionByHash(hash: string): Task&lt;Session?&gt;
++ CreateSession(session: Session): Task&lt;Session&gt;
++ DeleteSessionById(sessionId: int): Task&lt;bool&gt;
++ UpdateExpiryDateById(sessionId: int, newExpiry: DateTime): Task&lt;Session?&gt;
+_- MapSession(reader: DbDataReader): Session_</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>730</x>
+      <y>386</y>
+      <w>100</w>
+      <h>26</h>
+    </coordinates>
+    <panel_attributes>RememberTokensDAO
+--
++ RememberTokensDAO(db: DbManager)
++ GetRememberTokenById(id: int): Task&lt;RememberToken?&gt;
++ CreateRememberToken(token: RememberToken): Task&lt;RememberToken&gt;
++ GetRememberTokenByHash(hash: string): Task&lt;RememberToken?&gt;
++ DeleteRememberTokenByHash(hash: string): Task&lt;bool&gt;
+_- MapRememberToken(reader: DbDataReader): RememberToken_</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>422</x>
+      <y>386</y>
+      <w>98</w>
+      <h>26</h>
+    </coordinates>
+    <panel_attributes>PreferencesDAO
+--
++ PreferencesDAO(db: DbManager)
++ GetPreferenceByUserId(userId: int, key: string): Task&lt;UserPreference?&gt;
++ GetAllPreferencesByUserId(userId: int): Task&lt; List&lt;UserPreference&gt; &gt;
++ SetPreferenceByUserId(userId: int, key: string, value: string): Task
++ DeletePreferenceByUserId(userId: int, key: string): Task&lt;bool&gt;
+_- MapPreference(reader: DbDataReader): UserPreference_</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>838</x>
+      <y>386</y>
+      <w>128</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>OAuthTokensDAO
+--
++ OAuthTokensDAO(db: DbManager)
++ GetOAuthTokenByUserId(userId: int): Task&lt; List&lt;OAuthToken&gt; &gt;
++ GetOAuthTokenByHashedSession(session: string): Task&lt; List&lt;OAuthToken&gt; &gt;
++ CreateOAuthToken(authToken: OAuthToken): Task&lt;OAuthToken&gt;
++ DeleteOAuthTokenByUserId(provider: Provider, userId: int): Task&lt;bool&gt;
++ UpdateRefreshTokenById(previousOAuthToken: OAuthToken, refreshToken: string): Task&lt;bool&gt;
+_- MapOAuthToken(reader: DbDataReader): OAuthToken_</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>468</x>
+      <y>410</y>
+      <w>180</w>
+      <h>46</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1 \n- db</panel_attributes>
+    <additional_attributes>880.0;190.0;10.0;190.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>568</x>
+      <y>418</y>
+      <w>80</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1 \n- db</panel_attributes>
+    <additional_attributes>380.0;110.0;10.0;110.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>670</x>
+      <y>414</y>
+      <w>10</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1 \n- db</panel_attributes>
+    <additional_attributes>10.0;100.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>698</x>
+      <y>410</y>
+      <w>90</w>
+      <h>38</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1 \n- db</panel_attributes>
+    <additional_attributes>10.0;150.0;430.0;150.0;430.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>698</x>
+      <y>414</y>
+      <w>210</w>
+      <h>42</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1 \n- db</panel_attributes>
+    <additional_attributes>10.0;170.0;1030.0;170.0;1030.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>0</x>
+      <y>102</y>
+      <w>118</w>
+      <h>54</h>
+    </coordinates>
+    <panel_attributes>YoutubeAPI
+--
++ Provider: Provider
+- clientId: string
+- clientSecret: string
+- redirectUri: string
+- scope: string[]
+--
+- YoutubeAPI(clientId: string, clientSecret: string, redirectUri: string)
+_+ TryCreate(out instance: YoutubeAPI?): bool_
++ AuthRequest(httpContext: HttpContext): ActionResult
++ HandleCallbackAsync(httpContext: HttpContext): Task&lt;OAuthResult&gt;
++ RefreshAccessTokenAsync(refreshToken: string): Task&lt;OAuthResult&gt;
++ GetUserPlaylistsAsync(accessToken: string): Task&lt;UserPlaylists&gt;
++ GetUserDataAsync(accessToken: string): Task&lt;ProviderAccess&gt;
++ SearchForTracksAsync(accessToken: string, query: string): Task&lt;SearchQuery&gt;
++ AddSongToPlaylistAsync(accessToken: string, trackId: string, playlistId: string): Task</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>0</x>
+      <y>158</y>
+      <w>118</w>
+      <h>54</h>
+    </coordinates>
+    <panel_attributes>SpotifyAPI
+--
++ Provider: Provider
+- clientId: string
+- clientSecret: string
+- redirectUri: string
+- scope: string[]
+--
+- SpotifyAPI(clientId: string, clientSecret: string, redirectUri: string)
+_+ TryCreate(out instance: SpotifyAPI?): bool_
++ AuthRequest(httpContext: HttpContext): ActionResult
++ HandleCallbackAsync(httpContext: HttpContext): Task&lt;OAuthResult&gt;
++ RefreshAccessTokenAsync(refreshToken: string): Task&lt;OAuthResult&gt;
++ GetUserPlaylistsAsync(accessToken: string): Task&lt;UserPlaylists&gt;
++ GetUserDataAsync(accessToken: string): Task&lt;ProviderAccess&gt;
++ SearchForTracksAsync(accessToken: string, query: string): Task&lt;SearchQuery&gt;
++ AddSongToPlaylistAsync(accessToken: string, trackId: string, playlistId: string): Task</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>0</x>
+      <y>214</y>
+      <w>118</w>
+      <h>66</h>
+    </coordinates>
+    <panel_attributes>SoundCloudAPI
+--
++ Provider: Provider
+- clientId: string
+- clientSecret: string
+- redirectUri: string
+- httpClient: HttpClient
+- apiPath: string
+--
+- SoundCloudAPI(httpClient: HttpClient, clientId: string, clientSecret: string, redirectUri: string)
+_+ TryCreate(httpClient: HttpClient, out instance: SoundCloudAPI?): bool_
++ AuthRequest(httpContext: HttpContext): ActionResult
++ HandleCallbackAsync(httpContext: HttpContext): Task&lt;OAuthResult&gt;
++ RefreshAccessTokenAsync(refreshToken: string): Task&lt;OAuthResult&gt;
++ GetUserPlaylistsAsync(accessToken: string): Task&lt;UserPlaylists&gt;
++ GetUserDataAsync(accessToken: string): Task&lt;ProviderAccess&gt;
++ SearchForTracksAsync(accessToken: string, query: string): Task&lt;SearchQuery&gt;
++ AddSongToPlaylistAsync(accessToken: string, trackId: string, playlistId: string): Task
+_- GenerateCodeVerifier(): string_
+_- GeneratoCodeChallenge(codeVerifier: string): string_
+_- Base64UrlEncode(bytes: byte[]): string_</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>116</x>
+      <y>184</y>
+      <w>22</w>
+      <h>6</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>90.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>116</x>
+      <y>126</y>
+      <w>22</w>
+      <h>54</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>90.0;250.0;50.0;250.0;50.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>258</x>
+      <y>178</y>
+      <w>76</w>
+      <h>18</h>
+    </coordinates>
+    <panel_attributes>ProviderRegistry
+--
++ All: Dictionary&lt;Provider, IProvider&gt;
+--
++ ProviderRegistry(httpClientFactory: IHttpClientFactory)
++ TryGet(provider: Provider, out handler: IProvider): bool</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>134</x>
+      <y>166</y>
+      <w>110</w>
+      <h>38</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Interface&gt;&gt;
+IProvider
+--
++ Provider: Provider
+--
++ AuthRequest(httpContext: HttpContext): ActionResult
++ HandleCallbackAsync(httpContext: HttpContext): Task&lt;OAuthResult&gt;
++ RefreshAccessTokenAsync(refreshToken: string): Task&lt;OAuthResult&gt;
++ GetUserPlaylistsAsync(accessToken: string): Task&lt;UserPlaylists&gt;
++ GetUserDataAsync(accessToken: string): Task&lt;ProviderAccess&gt;
++ SearchForTracksAsync(accessToken: string, query: string): Task&lt;SearchQuery&gt;
++ AddSongToPlaylistAsync(accessToken: string, trackId: string, playlistId: string): Task</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>116</x>
+      <y>194</y>
+      <w>22</w>
+      <h>54</h>
+    </coordinates>
+    <panel_attributes>lt=.&gt;</panel_attributes>
+    <additional_attributes>10.0;250.0;50.0;250.0;50.0;10.0;90.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>242</x>
+      <y>186</y>
+      <w>20</w>
+      <h>8</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..n</panel_attributes>
+    <additional_attributes>80.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>736</x>
+      <y>302</y>
+      <w>128</w>
+      <h>28</h>
+    </coordinates>
+    <panel_attributes>AccountService
+--
++ AccountService(usersDao: UsersDAO, oAuthTokensDao: OAuthTokensDAO)
++ ValidateCredentials(username: string, password: string): Task&lt;(result: LoginResult, user: User?)&gt;
++ CreateAccount(username: string, password: string): Task&lt;User?&gt;
++ GetLinkedProviders(userId: int): Task&lt; List&lt;Provider&gt; &gt;
++ RemoveProvider(provider: Provider, userId: Provider): Task&lt;bool&gt;
++ DeleteAccount(userId: int): Task&lt;bool&gt;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>600</x>
+      <y>328</y>
+      <w>162</w>
+      <h>62</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m2=1\n- usersDao</panel_attributes>
+    <additional_attributes>790.0;10.0;790.0;60.0;10.0;60.0;10.0;290.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>822</x>
+      <y>328</y>
+      <w>110</w>
+      <h>62</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m2=1\n- oAuthTokensDao</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0;410.0;40.0;410.0;290.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>416</x>
+      <y>302</y>
+      <w>138</w>
+      <h>28</h>
+    </coordinates>
+    <panel_attributes>AuthService
+--
+- protector: IDataProtector
+--
++ AuthService(oAuthDao: OAuthTokensDAO, protector: IDataProtectionProvider, registry: ProviderRegistry)
++ RequestAuth(prov: Provider, httpContext: HttpContext): ActionResult
++ HandleCallback(provider: Provider, httpContext: HttpContext): Task&lt;OAuthResult?&gt;
++ RefreshAccessToken(provider: Provider, user: User): Task&lt;OAuthResult?&gt;
++ CreateOAuthToken(provider: Provider, result: OAuthResult, userId: int): Task</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>484</x>
+      <y>328</y>
+      <w>404</w>
+      <h>62</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m2=1\n- oAuthTokensDao</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;90.0;1880.0;100.0;1880.0;290.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>332</x>
+      <y>190</y>
+      <w>88</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m2=1\n- registry</panel_attributes>
+    <additional_attributes>420.0;630.0;70.0;630.0;70.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>838</x>
+      <y>258</y>
+      <w>122</w>
+      <h>22</h>
+    </coordinates>
+    <panel_attributes>CookieService
+--
++ SetAccessToken(httpResponse: HttpResponse, provider: Provider, token OAuthResult)
++ SetSession(httpResponse: HttpResponse, token: string, expiryDate: DateTime)
++ RemoveAccessToken(httpResponse: HttpResponse, provider: Provider)
++ SetRemember(httpResponse: HttpResponse, token: string, expiryDate: string)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>900</x>
+      <y>222</y>
+      <w>82</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>PasswordService
+--
+- hasher: PasswordHasher&lt;string&gt;
+--
+_+ HashPassword(pw: string): string_
+_+ VerifyPassword(hashedPw: string, providedPw: string): bool_</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>356</x>
+      <y>352</y>
+      <w>106</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>PreferenceService
+--
++ PreferenceService(preferencesDao: PreferencesDAO)
++ GetPreference(userId: int, key: string): Task&lt;string?&gt;
++ GetAllPreference(userId: int): Task&lt; List&lt;string, string&gt; &gt;
++ SetPreference(userId: int, key: string, value: string): Task
++ DeletePreference(userId: int, key: string): Task&lt;bool&gt;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>406</x>
+      <y>374</y>
+      <w>90</w>
+      <h>16</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1\n- preferencesDao</panel_attributes>
+    <additional_attributes>320.0;60.0;320.0;30.0;10.0;30.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>412</x>
+      <y>266</y>
+      <w>118</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>ProviderApiService
+--
++ ProviderApiService(providerRegistry: ProviderRegistry)
++ GetUserPlaylists(provider: Provider, request: HttpRequest): Task&lt;UserPlaylists&gt;
++ GetUserData(provider: Provider, token: string): Task&lt;ProviderAccess&gt;
++ SearchForTracks(provider: Provider, token: string, search: string): Task&lt;SearchQuery&gt;
++ AddToPlaylist(provider: Provider, token: string, trackId: string, playlistId: string): Task</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>332</x>
+      <y>180</y>
+      <w>84</w>
+      <h>102</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m2=1\n- registry</panel_attributes>
+    <additional_attributes>400.0;490.0;150.0;490.0;150.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>588</x>
+      <y>298</y>
+      <w>118</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>RememberTokenService
+--
+- expiryTime: int = 30
+--
++ RememberTokenService(rememberDao: RememberTokensDAO, usersDao: UsersDAO)
++ GenerateRemember(uId: int, token: string): Task&lt;RememberToken&gt;
++ GenerateToken(): string
++ DeleteSession(token: string): Task&lt;bool&gt;
++ GetUserByTokenHash(rawToken: string): Task&lt;User?&gt;
+_+ HashSessionToken(token: string): string_</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>582</x>
+      <y>312</y>
+      <w>20</w>
+      <h>78</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1\n- usersDao</panel_attributes>
+    <additional_attributes>10.0;370.0;10.0;10.0;30.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>686</x>
+      <y>328</y>
+      <w>122</w>
+      <h>62</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1\n- rememberDao</panel_attributes>
+    <additional_attributes>490.0;290.0;490.0;180.0;10.0;180.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>592</x>
+      <y>232</y>
+      <w>106</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>SessionService
+--
+- expiryTime: int = 30
+--
++ SessionService(sessionsDao: SessionsDAO, usersDao: UsersDAO)
++ GenerateSession(uId: int, token: string): Task&lt;Session&gt;
++ GenerateSessionToken(): string
++ DeleteSession(token: string): Task&lt;bool&gt;
++ GetUserBySessionToken(rawToken: string): Task&lt;User?&gt;
++ RefreshSession(token: string): Task&lt;Session?&gt;
+_+ HashSessionToken(token: string): string_</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>566</x>
+      <y>248</y>
+      <w>30</w>
+      <h>142</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1\n- usersDao</panel_attributes>
+    <additional_attributes>10.0;690.0;10.0;10.0;130.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>696</x>
+      <y>248</y>
+      <w>36</w>
+      <h>142</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1\n- sessionsDao</panel_attributes>
+    <additional_attributes>70.0;690.0;70.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>590</x>
+      <y>160</y>
+      <w>112</w>
+      <h>34</h>
+    </coordinates>
+    <panel_attributes>AccountController
+--
++ AccountController(accountService: AccountService, sessionService: SessionService,
+cookieService: CookieService, rememberTokenService: RememberTokenService
++ TryLogin(userAuthData: UserAuthData): Task&lt; ActionResult&lt;SessionContext&gt; &gt;
++ TryRegister(userAuthData: UserAuthData): Task&lt; ActionResult&lt;SessionContext&gt; &gt;
++ LogOut(): Task&lt;ActionResult&gt;
++ DisconnectProvider(provider: Provider): Task&lt;ActionResult&gt;
++ DeleteAccount(): Task&lt;ActionResult&gt;
+- RemoveCookies(): Task</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>848</x>
+      <y>172</y>
+      <w>84</w>
+      <h>16</h>
+    </coordinates>
+    <panel_attributes>AuthController
+--
++ AuthController(accountService: AccountService)
++ GetSessionContext(): Task&lt; ActionResult&lt;SessionContext&gt; &gt;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>370</x>
+      <y>170</y>
+      <w>88</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>PreferencesController
+--
++ PreferencesController(preferencesService: PreferencesService)
++ GetAll(): Task&lt; ActionResult&lt; Dictionary&lt;string, string&gt; &gt; &gt;
++ Get(key: string): Task&lt; ActionResult&lt;string&gt; &gt;
++ Set(key: string, value: string): Task&lt;ActionResult&gt;
++ Delete(key: string): Task&lt;ActionResult&gt;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>402</x>
+      <y>192</y>
+      <w>32</w>
+      <h>164</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1\n- preferencesService</panel_attributes>
+    <additional_attributes>10.0;800.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>732</x>
+      <y>166</y>
+      <w>108</w>
+      <h>22</h>
+    </coordinates>
+    <panel_attributes>ProviderAuthController
+--
++ ProviderAuthController(authService: AuthService, cookieService: CookieService)
++ Login(provider: Provider): ActionResult
++ Callback(provider: Provider): Task&lt;ActionResult&gt;
++ RefreshAccessToken(provider: Provider): Task&lt;ActionResult&gt;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>452</x>
+      <y>198</y>
+      <w>140</w>
+      <h>28</h>
+    </coordinates>
+    <panel_attributes>ProviderController
+--
++ ProviderController(apiService: ProviderApiService, authService: AuthService, cookieService: CookieService)
++ GetUserPlaylists(provider: Provider): Task&lt; ActionResult&lt;UserPlaylists&gt; &gt;
++ GetUserData(provider: Provider): Task&lt; ActionResult&lt;ProviderAccess&gt; &gt;
++ SearchForTracks(provider: Provider): Task&lt; ActionResult&lt;SearchQuery&gt; &gt;
++ AddToPlaylists(selections: List&lt;Selection&gt;): Task&lt;ActionResult&gt;
+- GetOrRefreshAccessToken(provider: Provider, user: User): Task&lt;string?&gt;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>800</x>
+      <y>186</y>
+      <w>94</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1\n- accountService</panel_attributes>
+    <additional_attributes>10.0;580.0;10.0;120.0;450.0;120.0;450.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>644</x>
+      <y>192</y>
+      <w>26</w>
+      <h>44</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1\n- sessionService</panel_attributes>
+    <additional_attributes>10.0;200.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>678</x>
+      <y>192</y>
+      <w>96</w>
+      <h>114</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1\n- accountService</panel_attributes>
+    <additional_attributes>360.0;550.0;360.0;140.0;10.0;140.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>700</x>
+      <y>180</y>
+      <w>142</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1\n- cookieService</panel_attributes>
+    <additional_attributes>690.0;410.0;620.0;410.0;620.0;110.0;110.0;110.0;110.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>776</x>
+      <y>186</y>
+      <w>26</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1\n- accountService</panel_attributes>
+    <additional_attributes>10.0;580.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>832</x>
+      <y>186</y>
+      <w>48</w>
+      <h>76</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1\n- cookieService</panel_attributes>
+    <additional_attributes>130.0;360.0;130.0;270.0;10.0;270.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>590</x>
+      <y>214</y>
+      <w>250</w>
+      <h>68</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1\n- cookieService</panel_attributes>
+    <additional_attributes>1230.0;300.0;870.0;300.0;870.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>486</x>
+      <y>224</y>
+      <w>20</w>
+      <h>46</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1\n- apiService</panel_attributes>
+    <additional_attributes>10.0;210.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>538</x>
+      <y>224</y>
+      <w>22</w>
+      <h>82</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=1\n- authService</panel_attributes>
+    <additional_attributes>10.0;390.0;10.0;10.0</additional_attributes>
+  </element>
+</diagram>
