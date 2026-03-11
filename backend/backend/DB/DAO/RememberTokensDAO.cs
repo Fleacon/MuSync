@@ -41,12 +41,12 @@ public class RememberTokensDAO
         return token;
     }
 
-    public async Task DeleteRememberTokenByHash(string hash)
+    public async Task<bool> DeleteRememberTokenByHash(string hash)
     {
         await using var conn = db.CreateConnection();
         await using var cmd = new MySqlCommand("DELETE FROM RememberTokens WHERE TokenHash = @hash", conn);
         cmd.Parameters.AddWithValue("@hash", hash);
-        await cmd.ExecuteNonQueryAsync();
+        return await cmd.ExecuteNonQueryAsync() > 0;
     }
     
     public async Task<RememberToken?>GetRememberTokenByHash(string hash)

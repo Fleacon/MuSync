@@ -60,7 +60,7 @@ public class ProviderController : ControllerBase
     [HttpPost("AddToPlaylists")]
     [ProducesResponseType(200)]
     [ProducesResponseType(typeof(ApiError), 400)] 
-    public async Task<IActionResult> AddToPlaylists([FromBody] IReadOnlyList<Selection> selections)
+    public async Task<ActionResult> AddToPlaylists([FromBody] IReadOnlyList<Selection> selections)
     {
         if (selections.Count == 0)
             return BadRequest(new ApiError(400, "No selections provided"));

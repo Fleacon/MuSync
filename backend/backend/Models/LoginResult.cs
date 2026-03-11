@@ -2,7 +2,7 @@
 
 public enum LoginResult
 {
-     SUCCESS,
-     UNAUTHORIZED,
-     NOTFOUND
+     Success,
+     Unauthorized,
+     NotFound
 }

@@ -38,7 +38,7 @@ public class PreferencesController : ControllerBase
 
     [HttpPut("{key}")]
     [ProducesResponseType(200)]
-    public async Task<IActionResult> Set(string key, [FromBody] string value)
+    public async Task<ActionResult> Set(string key, [FromBody] string value)
     {
         var user = HttpContext.GetCurrentUser()!;
         await preferencesService.SetPreference(user.UserId, key, value);
@@ -48,7 +48,7 @@ public class PreferencesController : ControllerBase
     [HttpDelete("{key}")]
     [ProducesResponseType(200)]
     [ProducesResponseType(typeof(ApiError), 404)]
-    public async Task<IActionResult> Delete(string key)
+    public async Task<ActionResult> Delete(string key)
     {
         var user = HttpContext.GetCurrentUser()!;
         var wasDeleted = await preferencesService.DeletePreference(user.UserId, key);

@@ -30,9 +30,9 @@ public class AccountController : ControllerBase
     public async Task<ActionResult<SessionContext>> TryLogin([FromBody] UserAuthData userAuthData)
     {
         var (result, user) = await accountService.ValidateCredentials(userAuthData.Username, userAuthData.Password);
-        if (result == LoginResult.NOTFOUND)
+        if (result == LoginResult.NotFound)
             return NotFound(new ApiError(404, "User not found"));
-        if (result == LoginResult.UNAUTHORIZED)
+        if (result == LoginResult.Unauthorized)
             return Unauthorized(new ApiError(401, "Invalid username or password"));
         
         var providers = await accountService.GetLinkedProviders(user!.UserId);
@@ -77,7 +77,7 @@ public class AccountController : ControllerBase
     [HttpPost("Logout")]
     [ProducesResponseType( 200)]
     [ProducesResponseType(typeof(ApiError), 404)]
-    public async Task<IActionResult> LogOut()
+    public async Task<ActionResult> LogOut()
     {
         var session = HttpContext.GetSessionToken();
 

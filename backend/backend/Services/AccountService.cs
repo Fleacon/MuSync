@@ -6,7 +6,7 @@ namespace backend.Services;
 public class AccountService
 {
     private readonly UsersDAO usersDao;
-    private OAuthTokensDAO oAuthTokensDao;
+    private readonly OAuthTokensDAO oAuthTokensDao;
 
     public AccountService(UsersDAO usersDao, OAuthTokensDAO oAuthTokensDao)
     {
@@ -18,12 +18,12 @@ public class AccountService
     {
         var user = await usersDao.GetUserByUsername(username);
         if (user is null)
-            return (LoginResult.NOTFOUND, null);
+            return (LoginResult.NotFound, null);
 
         if (!PasswordService.VerifyPassword(user.PasswordHash, password))
-            return (LoginResult.UNAUTHORIZED, null);
+            return (LoginResult.Unauthorized, null);
 
-        return (LoginResult.SUCCESS, user);
+        return (LoginResult.Success, user);
     }
     
     public async Task<User?> CreateAccount(string username, string password)
