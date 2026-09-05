@@ -3,7 +3,13 @@ using System.Text;
 using System.Text.Json.Serialization;
 using backend.Models;
 using DotNetEnv;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
+using SoundCloudSharp.Api;
+using SoundCloudSharp.Api.Authenticators;
+using SoundCloudSharp.Api.Endpoints;
+using SoundCloudSharp.Api.Models.Request;
 
 namespace backend.Providers;
 
@@ -46,27 +52,25 @@ public class SoundCloudAPI : IProvider
 
     public ActionResult AuthRequest(HttpContext httpContext)
     {
-        var codeVerifier = GenerateCodeVerifier();
-        var codeChallenge = GenerateCodeChallenge(codeVerifier);
-        var state = GenerateCodeVerifier();
+        var auth = AuthorizationCodeFlow.CreateRequest(clientId, new (redirectUri));
         
-        httpContext.Response.Cookies.Append("SC_CV", codeVerifier, new()
+        httpContext.Response.Cookies.Append("SC_CV", auth.CodeVerifier, new()
         {
             HttpOnly  = true,
             Secure = true,
             SameSite = SameSiteMode.Lax,
             MaxAge = TimeSpan.FromMinutes(10)
         });
+
+        httpContext.Response.Cookies.Append("SC_ST", auth.State, new()
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
+            MaxAge = TimeSpan.FromMinutes(10)
+        });
         
-        var uri = "https://secure.soundcloud.com/authorize" +
-                  $"?client_id={clientId}" +
-                  $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
-                  "&response_type=code" +
-                  $"&code_challenge={codeChallenge}" +
-                  "&code_challenge_method=S256" +
-                  $"&state={state}";
-        
-        return new RedirectResult(uri);
+        return new RedirectResult(auth.AuthorizationUri.ToString());
     }
 
     public async Task<OAuthResult> HandleCallbackAsync(HttpContext httpContext)
@@ -77,160 +81,98 @@ public class SoundCloudAPI : IProvider
         
         if (!httpContext.Request.Cookies.TryGetValue("SC_CV", out var codeVerifier))
             throw new ("Missing PKCE verifier");
+
+        if (!httpContext.Request.Cookies.TryGetValue("SC_ST", out var state))
+            throw new("Missing State");
+        
+        var callbackUri = httpContext.Request.GetEncodedUrl();
         
         httpContext.Response.Cookies.Delete("SC_CV");
+        httpContext.Response.Cookies.Delete("SC_ST");
 
-        var response = await httpClient.PostAsync("https://secure.soundcloud.com/oauth/token",
-            new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                ["grant_type"] = "authorization_code",
-                ["client_id"] = clientId,
-                ["client_secret"] = clientSecret,
-                ["redirect_uri"] = redirectUri,
-                ["code_verifier"] = codeVerifier, 
-                ["code"] = code,
-            }));
-        response.EnsureSuccessStatusCode();
-        var json = await response.Content.ReadFromJsonAsync<SoundCloudTokenResponse>();
+        var request = AuthorizationCodeFlow.CreateTokenRequest(
+            new(clientId, clientSecret), 
+            new(callbackUri), 
+            new(redirectUri), 
+            codeVerifier, 
+            state);
 
-        return new(json!.RefreshToken, json.AccessToken, DateTime.Now.AddSeconds(json.ExpiresIn));
+        var oAuth = new OAuthClient();
+        var token = await oAuth.RequestTokenAsync(request);
+        
+        return new(token.RefreshToken, token.AccessToken, DateTime.Now.AddSeconds(token.ExpiresIn));
     }
 
     public async Task<OAuthResult> RefreshAccessTokenAsync(string refreshToken)
     {
-        var response = await httpClient.PostAsync("https://secure.soundcloud.com/oauth/token",
-            new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                ["grant_type"] = "refresh_token",
-                ["client_id"] = clientId,
-                ["client_secret"] = clientSecret,
-                ["refresh_token"] = refreshToken
-            }));
-        if (!response.IsSuccessStatusCode)
-        {
-            var error = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"SoundCloud refresh failed: {response.StatusCode} - {error}");
-            throw new HttpRequestException($"Refresh failed: {error}");
-        }
-        var json = await response.Content.ReadFromJsonAsync<SoundCloudTokenResponse>();
-
-        return new(json!.RefreshToken, json.AccessToken, DateTime.Now.AddSeconds(json.ExpiresIn));
+        var oAuth = new OAuthClient();
+        var newToken = await oAuth.RefreshTokenAsync(new(clientId, clientSecret), refreshToken);
+        return new(newToken.RefreshToken, newToken.AccessToken, DateTime.Now.AddSeconds(newToken.ExpiresIn));
     }
 
     public async Task<UserPlaylists> GetUserPlaylistsAsync(string accessToken)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{apiPath}/me/playlists");
-        request.Headers.Authorization = new("OAuth", accessToken);
+        var client = new SoundCloudClient(accessToken);
+        var firstPage = await client.Me.GetPlaylistsAsync();
 
-        var response = await httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-        var json = await response.Content.ReadFromJsonAsync<List<SoundCloudPlaylist>>();
+        var playlists = await client
+            .PaginateAllAsync(firstPage)
+            .Select(sc => new Playlist(
+                Id: sc.Urn,
+                Title: sc.Title,
+                ThumbnailUrl: sc.ArtworkUrl.ToString()))
+            .ToListAsync();
         
-        List<Playlist> playlists = [];
-        playlists.AddRange(json!.Select(p => new Playlist(p.Id, p.Title, p.ArtworkUrl ?? "")));
-
         return new(Provider, playlists);
     }
 
     public async Task<ProviderAccess> GetUserDataAsync(string accessToken)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{apiPath}/me");
-        request.Headers.Authorization = new("OAuth", accessToken);
+        var client = new SoundCloudClient(accessToken);
 
-        var response = await httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-        var json = await response.Content.ReadFromJsonAsync<SoundCloudUser>();
+        var user = await client.Me.GetAsync();
 
-        return new(Provider, json!.Username, json.Avatar);
+        return new(Provider, user.Username, user.AvatarUrl.ToString());
     }
 
     public async Task<SearchQuery> SearchForTracksAsync(string accessToken, string query)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get,
-            $"{apiPath}/tracks?q={Uri.EscapeDataString(query)}&limit=10");
-        request.Headers.Authorization = new ("OAuth", accessToken);
+        var client = new SoundCloudClient(accessToken);
 
-        var searchResponse = await httpClient.SendAsync(request);
-        searchResponse.EnsureSuccessStatusCode();
-        var tracks = await searchResponse.Content.ReadFromJsonAsync<List<SoundCloudTrack>>();
+        var request = new SearchTracksRequest
+        {
+            Query = query,
+            Page = new () { Limit = 10 }
+        };
+
+        var tracks = await client.Search.SearchTracksAsync(request);
 
         return new(Provider,
-            tracks!.Select(t => new Track(
-                t.Id.ToString(),
+            tracks.Collection.Select(t => new Track(
+                t.Urn.ToString(),
                 t.Title,
-                t.ArtworkUrl ?? "",
+                t.ArtworkUrl.ToString(),
                 t.User.Username,
-                t.User.Avatar
+                t.User.AvatarUrl.ToString()
             )).ToArray());
     }
 
     public async Task AddSongToPlaylistAsync(string accessToken, string trackId, string playlistId)
     {
-        var getRequest = new HttpRequestMessage(HttpMethod.Get,
-            $"{apiPath}/playlists/{playlistId}?show_tracks=true");
-        getRequest.Headers.Authorization = new("OAuth", accessToken);
+        var client = new SoundCloudClient(accessToken);
+        
+        var playlist = await client.Playlists.GetPlaylistAsync(playlistId);
 
-        var getResponse = await httpClient.SendAsync(getRequest);
-        getResponse.EnsureSuccessStatusCode();
-        
-        var playlist = await getResponse.Content.ReadFromJsonAsync<SoundCloudPlaylist>();
-        
-        var updatedTracks = playlist!.Tracks
-            .Select(t => new { id = t.Id })
-            .Append(new { id = int.Parse(trackId) })
+        var trackUrns = playlist.Tracks
+            .Select(x => x.Urn)
             .ToList();
 
-        var putRequest = new HttpRequestMessage(HttpMethod.Put, $"{apiPath}/playlists/{playlistId}");
-        putRequest.Headers.Authorization = new("OAuth", accessToken);
-        putRequest.Content = JsonContent.Create(new
+        trackUrns.Add(trackId);
+        var request = new UpdatePlaylistRequest()
         {
-            playlist = new { tracks = updatedTracks }
-        });
-        
-        var putResponse = await httpClient.SendAsync(putRequest);
-        putResponse.EnsureSuccessStatusCode();
+            Tracks = trackUrns
+        };
+
+        await client.Playlists.UpdatePlaylistAsync(playlistId, request);
     }
-    
-    private static string GenerateCodeVerifier()
-    {
-        var bytes = new byte[32];
-        RandomNumberGenerator.Fill(bytes);
-        return Base64UrlEncode(bytes);
-    }
-
-    private static string GenerateCodeChallenge(string codeVerifier)
-    {
-        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(codeVerifier));
-        return Base64UrlEncode(hash);
-    }
-
-    private static string Base64UrlEncode(byte[] bytes) =>
-        Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
-    
-    // --- Models --- 
-    
-    record SoundCloudTokenResponse(
-        [property: JsonPropertyName("access_token")] string AccessToken,
-        [property: JsonPropertyName("refresh_token")] string RefreshToken,
-        [property: JsonPropertyName("expires_in")] int ExpiresIn
-    );
-
-    private record SoundCloudTrack(
-        [property: JsonPropertyName("id")] int Id,
-        [property: JsonPropertyName("title")] string Title,
-        [property: JsonPropertyName("user")] SoundCloudUser User,
-        [property: JsonPropertyName("artwork_url")] string? ArtworkUrl
-    );
-
-    private record SoundCloudUser(
-        [property: JsonPropertyName("username")] string Username,
-        [property: JsonPropertyName("avatar_url")] string Avatar
-    );
-
-    private record SoundCloudPlaylist(
-        [property: JsonPropertyName("urn")] string Id,
-        [property: JsonPropertyName("title")] string Title,
-        [property: JsonPropertyName("artwork_url")] string? ArtworkUrl,
-        [property: JsonPropertyName("tracks")] List<SoundCloudTrack> Tracks
-    );
 }
